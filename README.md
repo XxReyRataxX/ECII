@@ -1,2 +1,2 @@
 # ECII
-Jueguin
+Jueguin basado en plataformas y esquivar bolingas.
