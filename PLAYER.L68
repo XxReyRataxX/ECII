@@ -1,0 +1,261 @@
+00001020 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 13/11/2024 11:19:12
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :
+00000000                             3  * Written by :
+00000000                             4  * Date       :
+00000000                             5  * Description:
+00000000                             6  *-----------------------------------------------------------
+00001000                             7      ORG    $1000
+00001000                             8      ; ==============================================================================
+00001000                             9  ; SYSTEM VARIABLES
+00001000                            10  ; ==============================================================================
+00001000  =0000001E                 11  PLRWIDTH    EQU     30                      ; PLAYER WIDTH (PIXELS)
+00001000  =0000001E                 12  PLRHEIGH    EQU     30                      ; PLAYER HEIGHT (PIXELS)           
+00001000                            13  ; --- KEYBOARD RELATED VARIABLES -----------------------------------------------
+00001000  =00000000                 14  KBDTRAP     EQU     0                       ; KEYBOARD UPDATE TRAP
+00001000                            15  
+00001000                            16  KBDVAL      DS.B    1                       ; KEY STATE
+00001001                            17  KBDEDGE     DS.B    1                       ; KEY EDGE
+00001002                            18  
+00001002  =00000053                 19  KBDDOWN     EQU     'S'
+00001002  =00000044                 20  KBDRIGHT    EQU     'D'
+00001002  =00000057                 21  KBDUP       EQU     'W'
+00001002  =00000041                 22  KBDLEFT     EQU     'A'
+00001002  =00000020                 23  KBDESC      EQU     $20                     ; SPACE KEY (ESCUDO)
+00001002                            24  ; --- TIMED INTERRUPT RELATED VARIABLES ----------------------------------------
+00001002                            25  
+00001002                            26  SCRINTCT    DS.B    1                       ; INTERRUPT COUNTER
+00001004                            27              DS.W    0
+00001004                            28  
+00001004                            29  ; --- GAME STATE RELATED VARIABLES --------------------------------------------
+00001004                            30  
+00001004                            31  STACUR      DS.W    1                       ; CURRENT GAME STATE
+00001006                            32  STANEXT     DS.W    1                       ; NEXT GAME STATE
+00001008                            33  
+00001008                            34  ; --- BALL RELATED VARIABLES ---------------------------------------------------
+00001008                            35  
+00001008                            36  BALPOSX     DS.W    1                       ; BALL X COORDINATE
+0000100A                            37  BALPOSY     DS.W    1                       ; BALL Y COORDINATE
+0000100C                            38  BALVELX     DS.W    1                       ; BALL X VELOCITY
+0000100E                            39  BALVELY     DS.W    1                       ; BALL Y VELOCITY
+00001010                            40  
+00001010                            41  ; --- PLAYER RELATED VARIABLES ------------------------------------------------
+00001010                            42  
+00001010                            43  PLRPOSX     DS.W    1                       ; PLAYER X POSITION (PIXELS)
+00001012                            44  PLRPOSY     DS.W    1                       ; PLAYER Y POSITION (PIXELS)
+00001014                            45  PLRENER     DS.W    1                       ; PLAYER ENERGY
+00001016                            46  PLRDMG      DS.B    1                       ; BIT0: UPD DAMAGE, BIT1 PLOT DMG
+00001018                            47              DS.W    0
+00001018  =00000003                 48  PLRSPEED    EQU     3    
+00001018                            49              
+00001018                            50  ; --- ESCUDO RELATED VARIABLES ----------------------------------------------------
+00001018                            51  
+00001018                            52  ESCPOSX     DS.W 1                          ;POSICION Y ESCUDO
+0000101A                            53  ESCPOSY     DS.W 1                          ;POSICION Y ESCUDO
+0000101C                            54  
+0000101C                            55  ; --- SCREEN RELATED VARIABLES ---------------------------------------------
+0000101C  =00000280                 56  SCRWIDTH    EQU     640                     ; SCREEN WIDTH (PIXELS)
+0000101C  =000001E0                 57  SCRHEIGH    EQU     480                     ; SCREEN HEIGHT (PIXELS)
+0000101C                            58  
+0000101C                            59  TIMER       DS.W 1                          ;TIMER JUEGO
+0000101E                            60  POINT       DS.W 1                          ;PUNTOS CONSEGUIDOS     
+00001020  =00000001                 61  SCRTRAP     EQU     1
+00001020                            62  START:                  ; first instruction of program
+00001020                            63             
+00001020  4EB9 00001064             64              JSR SCRINIT
+00001026  4EB9 000010D4             65             JSR KBDINIT 
+0000102C                            66  
+0000102C  4EB9 000010E6             67             JSR PLRINIT
+00001032  4242                      68              CLR D2
+00001034  4E40                      69  .LOOP       TRAP    #KBDTRAP                ; READ KEYBOARD
+00001036  4EB9 000010F4             70              JSR     PLRUPD
+0000103C  4EB9 0000116E             71              JSR     DIBUJAR  
+00001042  4E41                      72              TRAP    #SCRTRAP                ; SHOW GRAPHICS                
+00001044                            73              
+00001044  60EE                      74              BRA .LOOP
+00001046  FFFF FFFF                 75      SIMHALT             ; halt simulator
+0000104A                            76  SCRUPD
+0000104A  48A7 C000                 77              MOVEM.W D0-D1,-(A7)
+0000104E  103C 005E                 78              MOVE.B  #94,D0                  ; UPDATE DOUBLE BUFFER
+00001052  4E4F                      79              TRAP    #15
+00001054  323C FF00                 80              MOVE.W  #$FF00,D1               ; CLEAR HIDDEN BUFFER
+00001058  103C 000B                 81              MOVE.B  #11,D0
+0000105C  4E4F                      82              TRAP    #15
+0000105E  4C9F 0003                 83              MOVEM.W (A7)+,D0-D1
+00001062  4E73                      84              RTE
+00001064                            85  SCRINIT   
+00001064  21FC 0000104A 0084        86              MOVE.L  #SCRUPD,($80+SCRTRAP*4)    ; INSTALL TRAP         
+0000106C  223C 028001E0             87              MOVE.L  #SCRWIDTH<<16|SCRHEIGH,D1 ; SET RESOLUTION
+00001072  103C 0021                 88              MOVE.B  #33,D0
+00001076  4E4F                      89              TRAP    #15
+00001078  7201                      90              MOVE.L  #1,D1                   ; SET WINDOWED MODE
+0000107A  4E4F                      91              TRAP    #15
+0000107C  323C FF00                 92              MOVE.W  #$FF00,D1               ; CLEAR VISIBLE BUFFER
+00001080  103C 000B                 93              MOVE.B  #11,D0
+00001084  4E4F                      94              TRAP    #15
+00001086  123C 0011                 95              MOVE.B  #17,D1                  ; ENABLE DOUBLE BUFFER
+0000108A  103C 005C                 96              MOVE.B  #92,D0
+0000108E  4E4F                      97              TRAP    #15
+00001090  323C FF00                 98              MOVE.W  #$FF00,D1               ; CLEAR HIDDEN BUFFER
+00001094  103C 000B                 99              MOVE.B  #11,D0
+00001098  4E4F                     100              TRAP    #15
+0000109A  4E75                     101              RTS 
+0000109C                           102  * Put variables and constants here
+0000109C                           103  KBDREAD
+0000109C                           104  ; TRAP SERVICE ROUTINE.
+0000109C                           105  ; UPDATES THE SYSTEM VARIABLES KBDEDGE AND KBDVAL ACCORDING TO THE BITFIELD
+0000109C                           106  ; DESCRIBED IN SYSCONST. KBDVAL HOLDS THE CURRENT VALUES AND KBDEFGE HOLDS
+0000109C                           107  ; RISING EDGES FROM PREVIOUS CALL TO THE CURRENT ONE.
+0000109C                           108  ; INPUT    - NONE
+0000109C                           109  ; OUTPUT   - (KBDVAL) AND (KBDEDGE)
+0000109C                           110  ; MODIFIES - NONE
+0000109C                           111  ; -----------------------------------------------------------------------------
+0000109C  48E7 F000                112              MOVEM.L D0-D3,-(A7)
+000010A0  103C 0013                113              MOVE.B  #19,D0
+000010A4  223C 53445741            114              MOVE.L  #KBDDOWN<<24+KBDRIGHT<<16+KBDUP<<8+KBDLEFT,D1
+000010AA  4E4F                     115              TRAP    #15
+000010AC  6100 0018                116              BSR     .STORE                  ; STORE KEY UP,DOWN,LEFT AND RIGTH.
+000010B0  1038 1000                117              MOVE.B  (KBDVAL),D0             ; COMPUTE EDGE.
+000010B4  4600                     118              NOT.B   D0                      ; EDGE=NOT(PREVIOUS) AND CURRENT.
+000010B6  C002                     119              AND.B   D2,D0
+000010B8  11C2 1000                120              MOVE.B  D2,(KBDVAL)             ; STORE VALUES (PRESS AND EDGE)
+000010BC  11C0 1001                121              MOVE.B  D0,(KBDEDGE)
+000010C0  4CDF 000F                122              MOVEM.L (A7)+,D0-D3
+000010C4  4E73                     123              RTE
+000010C6                           124  
+000010C6  363C 0003                125  .STORE      MOVE.W  #3,D3                   ; TRANSLATES THE 8-BIT ENCODING
+000010CA  E189                     126  .LOOP       LSL.L   #8,D1                   ; OF TRAP #15 TASK 19 INTO A 1-BIT
+000010CC  E312                     127              ROXL.B  #1,D2                   ; PER KEYPRESS ENCODING
+000010CE  51CB FFFA                128              DBRA.W  D3,.LOOP
+000010D2  4E75                     129              RTS
+000010D4                           130  KBDINIT     
+000010D4                           131      ; INITIALIZES THE SYSTEM VARIABLES KBDSYS AND KBDVAL
+000010D4                           132  ; INPUT    - NONE
+000010D4                           133  ; OUTPUT   - NONE
+000010D4                           134  ; MODIFIES - NONE
+000010D4                           135  ; -----------------------------------------------------------------------------
+000010D4  4238 1000                136              CLR.B   (KBDVAL)                    ; INIT VARS
+000010D8  4238 1001                137              CLR.B   (KBDEDGE)
+000010DC  21FC 0000109C 0080       138              MOVE.L  #KBDREAD, ($80+KBDTRAP*4)    ; INSTALL
+000010E4  4E75                     139              RTS
+000010E6                           140  PLRINIT            
+000010E6                           141  ;Personaje 
+000010E6                           142  ;----------------------------------------------------------------------------            
+000010E6  31FC 000F 1010           143              MOVE.W  #PLRWIDTH/2,(PLRPOSX)
+000010EC  31FC 00E1 1012           144              MOVE.W  #(SCRHEIGH-PLRHEIGH)/2,(PLRPOSY)
+000010F2  4E75                     145              RTS
+000010F4                           146              
+000010F4                           147  PLRUPD
+000010F4                           148  ; UPDATES THE PLAYER MOTION
+000010F4                           149  ; INPUT    - NONE (ACCESSES KBDVAL AND KBDEDGE)
+000010F4                           150  ; OUTPUT   - NONE (MODIFIES PLAYER DATA)
+000010F4                           151  ; MODIFIES - NONE
+000010F4                           152  ; -----------------------------------------------------------------------------
+000010F4  3F01                     153              MOVE.W  D1,-(A7)
+000010F6                           154              
+000010F6  1238 1000                155              MOVE.B  (KBDVAL),D1             ; PERFORM MOTION AND CHECK BOUNDS.
+000010FA  B47C 0001                156              CMP.W #1,D2
+000010FE  6600 0006                157              BNE     NADA
+00001102  5278 1012                158              ADD.W   #1,(PLRPOSY)
+00001106                           159  NADA
+00001106  E219                     160              ROR.B   #1,D1
+00001108  6400 0012                161              BCC     .CHKUP
+0000110C  5778 1010                162              SUB.W   #PLRSPEED,(PLRPOSX)
+00001110  4A78 1010                163              TST.W   (PLRPOSX)
+00001114  6C00 0006                164              BGE     .CHKUP
+00001118  4278 1010                165              CLR.W   (PLRPOSX)
+0000111C  E219                     166  .CHKUP      ROR.B   #1,D1
+0000111E  6400 0016                167              BCC     .CHKRT
+00001122  343C 0001                168              MOVE.W   #1,D2
+00001126  5778 1012                169              SUB.W   #PLRSPEED,(PLRPOSY) 
+0000112A                           170              
+0000112A  4A78 1012                171              TST.W   (PLRPOSY)
+0000112E  6C00 0006                172              BGE     .CHKRT
+00001132  4278 1012                173              CLR.W   (PLRPOSY)
+00001136  E219                     174  .CHKRT      ROR.B   #1,D1
+00001138  6400 0016                175              BCC     .CHKDN
+0000113C  5678 1010                176              ADD.W   #PLRSPEED,(PLRPOSX)
+00001140  0C78 0262 1010           177              CMP.W   #SCRWIDTH-PLRWIDTH,(PLRPOSX)
+00001146  6F00 0008                178              BLE     .CHKDN
+0000114A  31FC 0262 1010           179              MOVE.W  #SCRWIDTH-PLRWIDTH,(PLRPOSX)
+00001150  E219                     180  .CHKDN      ROR.B   #1,D1
+00001152  6400 0016                181              BCC     .MDONE
+00001156  5678 1012                182              ADD.W   #PLRSPEED,(PLRPOSY)
+0000115A  0C78 01C2 1012           183              CMP.W   #SCRHEIGH-PLRHEIGH,(PLRPOSY)
+00001160  6F00 0008                184              BLE     .MDONE
+00001164  31FC 01C2 1012           185              MOVE.W  #SCRHEIGH-PLRHEIGH,(PLRPOSY)
+0000116A                           186  .MDONE      
+0000116A                           187              
+0000116A                           188              
+0000116A  321F                     189              MOVE.W  (A7)+,D1
+0000116C  4E75                     190              RTS
+0000116E                           191  DIBUJAR
+0000116E  103C 0050                192              MOVE.B #80,D0
+00001172  223C 0000FF00            193              MOVE.L #$0000FF00,D1
+00001178  4E4F                     194              TRAP #15
+0000117A  3238 1010                195              MOVE.W  (PLRPOSX),D1            ; PLOT THE PLAYER
+0000117E  3438 1012                196              MOVE.W  (PLRPOSY),D2
+00001182  3601                     197              MOVE.W  D1,D3
+00001184  3802                     198              MOVE.W  D2,D4
+00001186  0643 001E                199              ADD.W   #PLRWIDTH,D3
+0000118A  0644 001E                200              ADD.W   #PLRHEIGH,D4
+0000118E  103C 0057                201              MOVE.B  #87,D0
+00001192  4E4F                     202              TRAP    #15
+00001194  4E75                     203              RTS
+00001196                           204      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+BALPOSX             1008
+BALPOSY             100A
+BALVELX             100C
+BALVELY             100E
+DIBUJAR             116E
+ESCPOSX             1018
+ESCPOSY             101A
+KBDDOWN             53
+KBDEDGE             1001
+KBDESC              20
+KBDINIT             10D4
+KBDLEFT             41
+KBDREAD             109C
+KBDREAD:LOOP        10CA
+KBDREAD:STORE       10C6
+KBDRIGHT            44
+KBDTRAP             0
+KBDUP               57
+KBDVAL              1000
+NADA                1106
+NADA:CHKDN          1150
+NADA:CHKRT          1136
+NADA:CHKUP          111C
+NADA:MDONE          116A
+PLRDMG              1016
+PLRENER             1014
+PLRHEIGH            1E
+PLRINIT             10E6
+PLRPOSX             1010
+PLRPOSY             1012
+PLRSPEED            3
+PLRUPD              10F4
+PLRWIDTH            1E
+POINT               101E
+SCRHEIGH            1E0
+SCRINIT             1064
+SCRINTCT            1002
+SCRTRAP             1
+SCRUPD              104A
+SCRWIDTH            280
+STACUR              1004
+STANEXT             1006
+START               1020
+START:LOOP          1034
+TIMER               101C

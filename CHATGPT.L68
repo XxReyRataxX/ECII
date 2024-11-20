@@ -1,0 +1,92 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 13/11/2024 10:57:38
+
+00000000                             1  ; Programa en Easy68K para mover un cuadrado con 'a', 'd' y hacer que salte con 'w'
+00000000                             2  
+00001000                             3      ORG     $1000          ; Comienzo del programa en memoria
+00001000                             4  
+00001000                             5  START:
+00001000  4240                       6      CLR     D0             ; D0 será la posición X
+00001002  123C 0005                  7      MOVE.B  #5, D1         ; D1 será la posición Y inicial (en el "suelo")
+00001006  143C 0000                  8      MOVE.B  #0, D2         ; D2 es la velocidad vertical para el salto (0 = en el suelo)
+0000100A                             9  
+0000100A                            10  MAIN_LOOP:
+0000100A                            11      ; Mostrar la posición actual del cuadrado
+0000100A  4EB9 00001062             12      JSR     DISPLAY_PLAYER
+00001010                            13  
+00001010                            14      ; Esperar entrada del usuario
+00001010  4EB9 0000105C             15      JSR     WAIT_INPUT
+00001016                            16  
+00001016                            17      ; Comprobar si se presionó 'a' (izquierda), 'd' (derecha) o 'w' (salto)
+00001016  B63C 0061                 18      CMP.B   #'a', D3
+0000101A  6700 002C                 19      BEQ     MOVE_LEFT
+0000101E  B63C 0064                 20      CMP.B   #'d', D3
+00001022  6700 0028                 21      BEQ     MOVE_RIGHT
+00001026  B63C 0077                 22      CMP.B   #'w', D3
+0000102A  6700 0024                 23      BEQ     JUMP
+0000102E                            24  
+0000102E                            25      ; Si D2 es distinto de cero, significa que estamos en el aire, y aplicamos "gravedad"
+0000102E  B43C 0000                 26      CMP.B   #0, D2
+00001032  67D6                      27      BEQ     MAIN_LOOP       ; Si D2 es cero, estamos en el suelo y no aplicamos gravedad
+00001034                            28  
+00001034                            29      ; Actualizar la posición en Y según la velocidad
+00001034  D202                      30      ADD.B   D2, D1
+00001036  5202                      31      ADD.B   #1, D2          ; Simulación de gravedad
+00001038                            32  
+00001038                            33      ; Si estamos en el suelo, reiniciamos la velocidad vertical
+00001038  B23C 0005                 34      CMP.B   #5, D1          ; 5 es la posición del "suelo"
+0000103C  66CC                      35      BNE     MAIN_LOOP
+0000103E  143C 0000                 36      MOVE.B  #0, D2          ; Detener la caída en el suelo
+00001042  123C 0005                 37      MOVE.B  #5, D1          ; Asegurar que no pase del suelo
+00001046                            38  
+00001046  60C2                      39      BRA     MAIN_LOOP
+00001048                            40  
+00001048                            41  MOVE_LEFT:
+00001048  5300                      42      SUB.B   #1, D0          ; Mover a la izquierda
+0000104A  60BE                      43      BRA     MAIN_LOOP
+0000104C                            44  
+0000104C                            45  MOVE_RIGHT:
+0000104C  5200                      46      ADD.B   #1, D0          ; Mover a la derecha
+0000104E  60BA                      47      BRA     MAIN_LOOP
+00001050                            48  
+00001050                            49  JUMP:
+00001050                            50      ; Solo saltar si estamos en el suelo (D1 = 5 y D2 = 0)
+00001050  B43C 0000                 51      CMP.B   #0, D2
+00001054  66B4                      52      BNE     MAIN_LOOP       ; Si estamos en el aire, ignoramos 'w' para evitar doble salto
+00001056  143C 00FD                 53      MOVE.B  #-3, D2         ; Asignar velocidad de salto (negativo para ir hacia arriba)
+0000105A  60AE                      54      BRA     MAIN_LOOP
+0000105C                            55              
+0000105C                            56  WAIT_INPUT:
+0000105C                            57      ; Leer un carácter del teclado
+0000105C  4E4F                      58      TRAP    #15             ; Interrupción para leer un carácter
+0000105E  1601                      59      MOVE.B  D1, D3          ; Guardar el carácter en D3
+00001060  4E75                      60      RTS
+00001062                            61  
+00001062                            62  DISPLAY_PLAYER:
+00001062                            63      ; Limpia la pantalla y muestra la posición del jugador
+00001062  4E4E                      64      TRAP    #14             ; Limpiar pantalla
+00001064  1F00                      65      MOVE.B  D0, -(A7)       ; Guardar la posición X en la pila
+00001066  1F01                      66      MOVE.B  D1, -(A7)       ; Guardar la posición Y en la pila
+00001068                            67      ; TRAP para dibujar en pantalla (puede variar)
+00001068  4E4D                      68      TRAP    #13             ; Llamada ficticia, define según tu implementación gráfica
+0000106A  548F                      69      ADDQ.L  #2, A7          ; Restaurar la pila (2 bytes)
+0000106C                            70      
+0000106C  4E75                      71      RTS
+0000106E                            72     
+0000106E                            73      END START
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+DISPLAY_PLAYER      1062
+JUMP                1050
+MAIN_LOOP           100A
+MOVE_LEFT           1048
+MOVE_RIGHT          104C
+START               1000
+WAIT_INPUT          105C
