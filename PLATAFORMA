@@ -1,0 +1,49 @@
+*-----------------------------------------------------------
+;PLATAFORMA UWU
+*-----------------------------------------------------------
+;------------------------------------------------CONSTANTES UWU------------------------------------------------
+
+
+R_ALTURA    EQU 20
+R_ANCHURA   EQU 100
+
+
+;------------------------------------------------MÉTODOS UWU------------------------------------------------
+
+DIBUJARC
+;-----------------------------------------------------------------------------
+; DIBUJAR UN RECTANGULO, altura 20, ancho 100
+; Draw rectangle defined by (Left X, Upper Y, Right X, Lower Y).  
+; where LX = D1.W, UY = D2.W, RX = D3.W, LY = D4.W 
+; The rectangle is drawn using pen color and filled using fill color.
+; Input    - XCENTER Y YCENTER EN D5.W Y D6.W, O SEA COORDENADAS DEL CENTRO DE PLATAFORMA :)
+; Output   - None
+; Modifies - Pues dibuja algo...
+; -----------------------------------------------------------------------------
+
+            MOVEM.L D0-D7, -(A7)
+            
+            MOVE.B  #81,D0                  ;--------COLORES
+            MOVE.L  #$00800000,D1
+            TRAP    #15
+            MOVE.B  #80,D0                  
+            MOVE.L  #$00FFFFFF,D1
+            TRAP    #15                     
+            
+            
+            MOVE.W  D6,D2            ;-------- COORDENADAS Y
+            SUB.W   #R_ALTURA/2,D2
+            MOVE.W  D2,D4
+            ADD.W   #R_ALTURA,D4
+            
+            MOVE.W  D5,D1            ;-------- COORDENADAS X
+            SUB.W   #R_ANCHURA/2,D1
+            MOVE.W  D1,D3
+            ADD.W   #R_ANCHURA,D3
+            
+            MOVE.B  #87,D0                  ;-------- DIBUJAR
+            TRAP    #15
+            
+            MOVEM.L (A7)+,D0-D7  
+            
+            RTS
