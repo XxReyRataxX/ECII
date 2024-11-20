@@ -5,11 +5,14 @@
 * Description:
 *-----------------------------------------------------------
     ORG    $1000
-    ; ==============================================================================
+; ==============================================================================
 ; SYSTEM VARIABLES
 ; ==============================================================================
 PLRWIDTH    EQU     30                      ; PLAYER WIDTH (PIXELS)
-PLRHEIGH    EQU     30                      ; PLAYER HEIGHT (PIXELS)           
+PLRHEIGH    EQU     30                      ; PLAYER HEIGHT (PIXELS)
+
+
+          
 ; --- KEYBOARD RELATED VARIABLES -----------------------------------------------
 KBDTRAP     EQU     0                       ; KEYBOARD UPDATE TRAP
 
@@ -55,7 +58,7 @@ ESCPOSY     DS.W 1                          ;POSICION Y ESCUDO
 ; --- SCREEN RELATED VARIABLES ---------------------------------------------
 SCRWIDTH    EQU     640                     ; SCREEN WIDTH (PIXELS)
 SCRHEIGH    EQU     480                     ; SCREEN HEIGHT (PIXELS)
-
+SCRIRQ      EQU     1                       ; SCREEN INTERRUPT NUMBER
 TIMER       DS.W 1                          ;TIMER JUEGO
 POINT       DS.W 1                          ;PUNTOS CONSEGUIDOS     
 SCRTRAP     EQU     1
@@ -68,22 +71,26 @@ START:                  ; first instruction of program
             CLR D2
 .LOOP       TRAP    #KBDTRAP                ; READ KEYBOARD
             JSR     PLRUPD
-            JSR     DIBUJAR  
+
+            JSR     DIBUJAR
+.WINT       TST.B   (SCRINTCT)              ; WAIT FOR INTERRUPT
+            BEQ     .WINT
+            CLR.B   (SCRINTCT)  
             TRAP    #SCRTRAP                ; SHOW GRAPHICS                
             
             BRA .LOOP
     SIMHALT             ; halt simulator
-SCRUPD
-            MOVEM.W D0-D1,-(A7)
-            MOVE.B  #94,D0                  ; UPDATE DOUBLE BUFFER
-            TRAP    #15
-            MOVE.W  #$FF00,D1               ; CLEAR HIDDEN BUFFER
-            MOVE.B  #11,D0
-            TRAP    #15
-            MOVEM.W (A7)+,D0-D1
+SCRISR
+; SCREEN TIMER ISR. INCREASES THE INTERRUPT COUNTER AND UPDATES DOUBLE BUFFER.
+; INPUT    - NONE
+; OUTPUT   - NONE
+; MODIFIES - NONE
+; -----------------------------------------------------------------------------
+            ADDQ.B  #1,(SCRINTCT)           ; UPDATE INT FLAG/COUNTER
             RTE
-SCRINIT   
-            MOVE.L  #SCRUPD,($80+SCRTRAP*4)    ; INSTALL TRAP         
+SCRINIT
+            ORI.W   #$0700,SR               ; DISABLE ALL INT
+            MOVE.L  #SCRUPD,($80+SCRTRAP*4) ; INSTALL TRAP
             MOVE.L  #SCRWIDTH<<16|SCRHEIGH,D1 ; SET RESOLUTION
             MOVE.B  #33,D0
             TRAP    #15
@@ -98,6 +105,20 @@ SCRINIT
             MOVE.W  #$FF00,D1               ; CLEAR HIDDEN BUFFER
             MOVE.B  #11,D0
             TRAP    #15
+            MOVE.L  #SCRISR,($64)       ; 60+SCRIRQ*4)  ; SET EXCEPTION VECTOR
+            MOVE.B  #5,D1                   ; ENABLE EXCEPTION PROCESSING
+            MOVE.B  #32,D0
+            TRAP    #15
+           ; ENABLE TIMED INTERRUPT
+            MOVE.B  #32,D0
+            MOVE.B  #6,D1
+            MOVE.B  #$81,D2
+            MOVE.L  #20,D3
+            TRAP    #15
+            
+            CLR.B   (SCRINTCT)              ; PREPARE INTERRUPT FLAG
+            
+            ANDI.W  #$F8FF,SR               ; ENABLE INTS            
             RTS 
 * Put variables and constants here
 KBDREAD
@@ -154,7 +175,7 @@ PLRUPD
             
             MOVE.B  (KBDVAL),D1             ; PERFORM MOTION AND CHECK BOUNDS.
             CMP.W #1,D2
-            BNE     NADA
+            BEQ     NADA
             ADD.W   #1,(PLRPOSY)
 NADA
             ROR.B   #1,D1
@@ -201,6 +222,22 @@ DIBUJAR
             MOVE.B  #87,D0
             TRAP    #15
             RTS
+; -----------------------------------------------------------------------------
+SCRUPD
+; TRAP SERVICE ROUTINE IN CHARGE OF VISUALIZING CURRENT FRAME AND CLEARING
+; BUFFER FOR THE NEXT ONE.
+; INPUT    - NONE
+; OUTPUT   - NONE
+; MODIFIES - NONE
+; -----------------------------------------------------------------------------
+            MOVEM.W D0-D1,-(A7)
+            MOVE.B  #94,D0                  ; UPDATE DOUBLE BUFFER
+            TRAP    #15
+            MOVE.W  #$FF00,D1               ; CLEAR HIDDEN BUFFER
+            MOVE.B  #11,D0
+            TRAP    #15
+            MOVEM.W (A7)+,D0-D1
+            RTE
     END    START        ; last line of source
 
 
@@ -208,7 +245,3 @@ DIBUJAR
 
 
 
-*~Font name~Courier New~
-*~Font size~10~
-*~Tab type~1~
-*~Tab size~4~
