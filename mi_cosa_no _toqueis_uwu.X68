@@ -2,7 +2,7 @@
 * Title      :
 * Written by :
 * Date       :
-* Description: syc mal, dibuja rectangulo y que este mueva, cambia de direccion si choca,
+* Description: syc BIEN, dibuja rectangulo y que este mueva, cambia de direccion si choca,
 ;              double buffer 
 *-----------------------------------------------------------
     ORG    $1000
@@ -14,8 +14,15 @@ CANCHURA    EQU     100
 XCENTER     DS.W    1
 YCENTER     DS.W    1
 MOVIMIENTO  DS.W    1
-START:                  ; first instruction of program
+SCRINTCT    DS.B    1                       ; INTERRUPT COUNTER
+            DS.W    0
 
+START:                  ; first instruction of program
+    
+            
+
+
+            CLR.B   (SCRINTCT)
             MOVE.L  #1,D1
             MOVE.B  #33,D0
             TRAP    #15                     ; ENSURE WINDOWED MODE
@@ -26,41 +33,54 @@ START:                  ; first instruction of program
             MOVE.W  #SCRHEIGH/2, D6
             MOVE.W  #SCRWIDTH/2, D5
             TRAP    #0
+            MOVE.L  #1, MOVIMIENTO
             
+
+
+
+
             ;HABILITAR DOUBLE BUFFER
             MOVE.B  #92,D0
             MOVE.B  #17,D1
             TRAP    #15
-            
-.LOOP      
+
+            ; INSTALAR INTERUPCIÓN DE TIEMPO REAL
+            MOVE.L  #SCRISR, ($64)          ; Instalar vector de interrupción de pantalla (Timer ISR)
+            MOVE.B  #32,D0
+            MOVE.B  #6,D1
+            MOVE.B  #$81,D2
+            MOVE.L  #20,D3
+            TRAP    #15
+;-------------------------SYNC-------------------------------
 
             ; THE FOLLOWING SYNC STRATEGY IS ****WRONG****
-            MOVE.B  #23,D0
-            MOVE.L  #1,D1
-            TRAP    #15
-            
+            ;MOVE.B  #23,D0
+            ;MOVE.L  #1,D1
+            ;TRAP    #15
+.LOOP      
+
+
+            TST.B   (SCRINTCT)              ; Verifica si ocurrió la interrupción
+            BEQ     .LOOP                   ; Si no, sigue esperando
+            CLR.B   (SCRINTCT)              ; Limpia la bandera de interrupción
+;-----------------------------------------------------------
+
             ADD.W    (MOVIMIENTO),D5
-            ;COMPARA SI CHOCA PARED :( CMP B,A
-            ;SI A<B PUES NADA A DIBUJAR EN AUX
+            ; COMPARA SI CHOCA PARED :( CMP B,A
+            ; SI A<B PUES NADA A DIBUJAR EN AUX
             CMP.W   #SCRWIDTH, D5
             BLO .AUX
             NEG.W   (MOVIMIENTO)
             ADD.W   (MOVIMIENTO),D5
            
 .AUX            
-            TRAP    #0                      ;DIBUJA RECTANGULO
-            TRAP    #1                      ;DBUFFER D:
+            TRAP    #0                      ; DIBUJA RECTANGULO
+            TRAP    #1                      ; DBUFFER D:
             BRA     .LOOP
-            
-     
 
-            
-            
-    SIMHALT             ; halt simulator
+SIMHALT             ; halt simulator
     
-    ; -----------------------------------------------------------------------------
-
-
+    ; ------------------------------------------------------------------------------
 
 DIBUJARC
 ; DIBUJAR UN RECTANGULO, altura 40, ancho 100
@@ -75,7 +95,7 @@ DIBUJARC
 
             MOVEM.L D0-D7, -(A7)
             
-            MOVE.B  #81,D0                  ;--------COLORES
+            MOVE.B  #81,D0                  ;-------- COLORES
             MOVE.L  #$00800000,D1
             TRAP    #15
             MOVE.B  #80,D0                  
@@ -119,12 +139,11 @@ DIBUJARPANTALLA
             MOVEM.W (A7)+,D0-D1
             RTE       
             
-            
-            
-            
 
-            
-* Put variables and constants here
-
+SCRISR
+; Screen Interrupt Service Routine (ISR)
+; This routine is triggered by a screen refresh interrupt and will update the interrupt flag.
+; -----------------------------------------------------------------------------
+            ADDQ.B  #1,(SCRINTCT)           ; Increment the interrupt counter
+            RTE
     END    START        ; last line of source
-
