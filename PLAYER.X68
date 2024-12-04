@@ -262,7 +262,7 @@ PLRPOSY     DS.W    1                       ; PLAYER Y POSITION (PIXELS)
 PLRENER     DS.W    1                       ; PLAYER ENERGY
 PLRDMG      DS.B    1                       ; BIT0: UPD DAMAGE, BIT1 PLOT DMG
             DS.W    0
-PLRSPEED    EQU     3    
+PLRSPEED    EQU     6    
             
 ; --- ESCUDO RELATED VARIABLES ----------------------------------------------------
 
@@ -387,11 +387,10 @@ PLRUPD
 ; -----------------------------------------------------------------------------
             MOVE.W  D1,-(A7)
             
+            
             MOVE.B  (KBDVAL),D1             ; PERFORM MOTION AND CHECK BOUNDS.
-            CMP.W #1,D2
-            BEQ     NADA
-            ADD.W   #1,(PLRPOSY)
-NADA
+            
+            ADD.W   #2,(PLRPOSY)
             ROR.B   #1,D1
             BCC     .CHKUP
             SUB.W   #PLRSPEED,(PLRPOSX)
@@ -400,7 +399,7 @@ NADA
             CLR.W   (PLRPOSX)
 .CHKUP      ROR.B   #1,D1
             BCC     .CHKRT
-            MOVE.W   #1,D2
+            
             SUB.W   #PLRSPEED,(PLRPOSY) 
             
             TST.W   (PLRPOSY)
@@ -443,9 +442,10 @@ LOOPDIB:
             TRAP #15 ;PEN COLOR
             MOVE.B #82,D0
             MOVE.L (A1)+,D1
+            MOVE.L (A2)+,D2
             ADD.L D5,D1
             ADD.L D6,D2
-            MOVE.L (A2)+,D2
+            
             TRAP #15 ;Dibujar pixel
             DBRA D4,LOOPDIB
             
