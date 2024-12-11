@@ -229,7 +229,7 @@ PLRHEIGH    EQU     30                      ; PLAYER HEIGHT (PIXELS)
           
 ; --- KEYBOARD RELATED VARIABLES -----------------------------------------------
 KBDTRAP     EQU     0                       ; KEYBOARD UPDATE TRAP
-
+MOUSETRAP   EQU     2
 KBDVAL      DS.B    1                       ; KEY STATE
 KBDEDGE     DS.B    1                       ; KEY EDGE
 
@@ -283,7 +283,9 @@ START:                  ; first instruction of program
 
            JSR PLRINIT
             CLR D2
-.LOOP       TRAP    #KBDTRAP                ; READ KEYBOARD
+.LOOP       
+            TRAP    #MOUSETRAP
+            TRAP    #KBDTRAP                ; READ KEYBOARD
             JSR     PLRUPD
 
             JSR     DIBUJAR
@@ -305,6 +307,9 @@ SCRISR
 SCRINIT
             ORI.W   #$0700,SR               ; DISABLE ALL INT
             MOVE.L  #SCRUPD,($80+SCRTRAP*4) ; INSTALL TRAP
+            MOVE.L #REVISIONMOUSE,($80+*MOUSETRAP*4) ; INSTALL TRAP
+            
+            
             MOVE.L  #SCRWIDTH<<16|SCRHEIGH,D1 ; SET RESOLUTION
             MOVE.B  #33,D0
             TRAP    #15
@@ -452,7 +457,7 @@ LOOPDIB:
             MOVEM.L (A7)+,D0-D6
             MOVEM.L (A7)+,A0-A1
             RTS
-            
+REVISIONMOUSE:            
 ; -----------------------------------------------------------------------------
 SCRUPD
 ; TRAP SERVICE ROUTINE IN CHARGE OF VISUALIZING CURRENT FRAME AND CLEARING
