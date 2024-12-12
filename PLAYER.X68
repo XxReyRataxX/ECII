@@ -278,14 +278,22 @@ TIMER       DC.B    'TIMER: ',0
 VTIMER      DS.W    1
 POINT       DS.W    1                          ;PUNTOS CONSEGUIDOS     
 SCRTRAP     EQU     1
+
+-----------------MOUSE DECLARATIONS----------
+MOUSETRAP   EQU     2
+ENATP       DS.W    1
+LASTENA     DS.W    1
 START:                  ; first instruction of program
            CLR.L VTIMER
             JSR SCRINIT
-           JSR KBDINIT 
+           JSR KBDINIT
+	   JSR MOUSEINIT
 
            JSR PLRINIT
            CLR.L D2
-.LOOP       TRAP    #KBDTRAP                ; READ KEYBOARD
+.LOOP       
+            TRAP    #MOUSETRAP
+	    TRAP    #KBDTRAP                ; READ KEYBOARD
             JSR     PLRUPD
 
             JSR     DIBUJAR
@@ -471,7 +479,68 @@ LOOPDIB:
             MOVEM.L (A7)+,D0-D6
             MOVEM.L (A7)+,A0-A1
             RTS
+MOUSEINIT     
+    ; INITIALIZES THE SYSTEM VARIABLES KBDSYS AND KBDVAL
+; INPUT    - NONE
+; OUTPUT   - NONE
+; MODIFIES - NONE
+; -----------------------------------------------------------------------------
+            CLR.W   (MOUSEPOSX)                    ; INIT VARS
+            CLR.W   (MOUSEPOSY)
+            CLR.W   (ENATP)
+            CLR.W   (LASTENA)
+	
+            MOVE.L  #REVISION, ($80+MOUSETRAP*4)    ; INSTALL
+            RTS
             
+REVISION:
+            MOVEM.L D0-D7,-(A7)
+
+	; READ CURRENT STATE OF MOUSE AND CHANGE MOUSE COORDINATES
+	MOVE.B  #61,D0
+	MOVE.B  #00,D1
+	
+	TRAP    #15
+            MOVE.W  D1,(MOUSEPOSX)
+            
+
+            
+	
+
+            SWAP    D1            ; Intercambia los 16 bits superiores e inferiores de D1
+
+            MOVE.W  D1,(MOUSEPOSY)
+            SWAP    D1
+	
+
+	; IF LEFT CLICK PRESSED AND IT'S INSIDE THE BUTTON ADD 1
+	BTST    #0,D0
+	
+            BEQ     NOT_PRESSED
+            CMP.W   #0,(ENATP)
+            BNE CHECKTIMER
+
+PRESSED:
+            MOVE.W (VTIMER),(LASTENA)
+            MOVE.W (MOUSEPOSX),(PLRPOSX)
+            MOVE.W (MOUSEPOSY),(PLRPOSY)
+            MOVE.W #1,(ENATP)
+	BRA     NOT_PRESSED
+
+CHECKTIMER:
+            MOVE.W (VTIMER),D3
+            SUB.W (LASTENA),D3
+            
+            CMP #2,D3
+            BNE NOT_PRESSED
+            CLR.W (ENATP)
+            
+         
+NOT_PRESSED:          
+	MOVEM.L  (A7)+,D0-D7
+	RTE
+	
+           
 ; -----------------------------------------------------------------------------
 SCRUPD
 ; TRAP SERVICE ROUTINE IN CHARGE OF VISUALIZING CURRENT FRAME AND CLEARING
