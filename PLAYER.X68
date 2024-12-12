@@ -229,7 +229,7 @@ PLRHEIGH    EQU     30                      ; PLAYER HEIGHT (PIXELS)
           
 ; --- KEYBOARD RELATED VARIABLES -----------------------------------------------
 KBDTRAP     EQU     0                       ; KEYBOARD UPDATE TRAP
-MOUSETRAP   EQU     2
+
 KBDVAL      DS.B    1                       ; KEY STATE
 KBDEDGE     DS.B    1                       ; KEY EDGE
 
@@ -241,6 +241,7 @@ KBDESC      EQU     $20                     ; SPACE KEY (ESCUDO)
 ; --- TIMED INTERRUPT RELATED VARIABLES ----------------------------------------
 
 SCRINTCT    DS.B    1                       ; INTERRUPT COUNTER
+SCRCYCCT    DS.B    1                       ; CYCLE COUNTER
             DS.W    0
 
 ; --- GAME STATE RELATED VARIABLES --------------------------------------------
@@ -273,25 +274,32 @@ ESCPOSY     DS.W 1                          ;POSICION Y ESCUDO
 SCRWIDTH    EQU     640                     ; SCREEN WIDTH (PIXELS)
 SCRHEIGH    EQU     480                     ; SCREEN HEIGHT (PIXELS)
 SCRIRQ      EQU     1                       ; SCREEN INTERRUPT NUMBER
-TIMER       DS.W 1                          ;TIMER JUEGO
-POINT       DS.W 1                          ;PUNTOS CONSEGUIDOS     
+TIMER       DC.B    'TIMER: ',0
+VTIMER      DS.W    1
+POINT       DS.W    1                          ;PUNTOS CONSEGUIDOS     
 SCRTRAP     EQU     1
 START:                  ; first instruction of program
-           
+           CLR.L VTIMER
             JSR SCRINIT
            JSR KBDINIT 
 
            JSR PLRINIT
-            CLR D2
-.LOOP       
-            TRAP    #MOUSETRAP
-            TRAP    #KBDTRAP                ; READ KEYBOARD
+           CLR.L D2
+.LOOP       TRAP    #KBDTRAP                ; READ KEYBOARD
             JSR     PLRUPD
 
             JSR     DIBUJAR
+            
 .WINT       TST.B   (SCRINTCT)              ; WAIT FOR INTERRUPT
             BEQ     .WINT
-            CLR.B   (SCRINTCT)  
+            CLR.B   (SCRINTCT)
+            CLR.L D6
+            MOVE.B (SCRCYCCT),D6
+            CMP #50,D6
+            BNE .YA
+            ADDQ.W #1,(VTIMER)
+            CLR.B   (SCRCYCCT)
+.YA           
             TRAP    #SCRTRAP                ; SHOW GRAPHICS                
             
             BRA .LOOP
@@ -303,13 +311,11 @@ SCRISR
 ; MODIFIES - NONE
 ; -----------------------------------------------------------------------------
             ADDQ.B  #1,(SCRINTCT)           ; UPDATE INT FLAG/COUNTER
+            ADDQ.B  #1,(SCRCYCCT)           ; UPDATE CYCLE COUNTER
             RTE
 SCRINIT
             ORI.W   #$0700,SR               ; DISABLE ALL INT
             MOVE.L  #SCRUPD,($80+SCRTRAP*4) ; INSTALL TRAP
-            MOVE.L #REVISIONMOUSE,($80+*MOUSETRAP*4) ; INSTALL TRAP
-            
-            
             MOVE.L  #SCRWIDTH<<16|SCRHEIGH,D1 ; SET RESOLUTION
             MOVE.B  #33,D0
             TRAP    #15
@@ -335,8 +341,9 @@ SCRINIT
             MOVE.L  #20,D3
             TRAP    #15
             
-            CLR.B   (SCRINTCT)              ; PREPARE INTERRUPT FLAG
             
+            CLR.B   (SCRINTCT)              ; PREPARE INTERRUPT FLAG
+            CLR.B   (SCRCYCCT) 
             ANDI.W  #$F8FF,SR               ; ENABLE INTS            
             RTS 
 * Put variables and constants here
@@ -430,6 +437,13 @@ PLRUPD
 DIBUJAR     ;DIBUJAMOS DESDE 0,0 HASTA A SABER DONDE
             MOVEM.L D0-D6,-(A7)
             MOVEM.L A0-A1,-(A7)
+            
+            LEA TIMER,A1
+            CLR.L D1
+            CLR.L D0
+            MOVE.W (VTIMER),D1
+            MOVE.B #17,D0
+            TRAP #15
             MOVE.W (PLRPOSX),D5
             MOVE.W (PLRPOSY),D6
             LEA PIXEL,A0
@@ -457,7 +471,7 @@ LOOPDIB:
             MOVEM.L (A7)+,D0-D6
             MOVEM.L (A7)+,A0-A1
             RTS
-REVISIONMOUSE:            
+            
 ; -----------------------------------------------------------------------------
 SCRUPD
 ; TRAP SERVICE ROUTINE IN CHARGE OF VISUALIZING CURRENT FRAME AND CLEARING
@@ -475,6 +489,11 @@ SCRUPD
             MOVEM.W (A7)+,D0-D1
             RTE
     END    START        ; last line of source
+
+
+
+
+
 
 
 
