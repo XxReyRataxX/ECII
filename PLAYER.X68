@@ -283,6 +283,8 @@ SCRTRAP     EQU     1
 MOUSETRAP   EQU     2
 ENATP       DS.W    1
 LASTENA     DS.W    1
+MOUSEPOSX   DS.W    1
+MOUSEPOSY   DS.W    1
 START:                  ; first instruction of program
            CLR.L VTIMER
             JSR SCRINIT
@@ -558,7 +560,6 @@ SCRUPD
             MOVEM.W (A7)+,D0-D1
             RTE
     END    START        ; last line of source
-
 
 
 
