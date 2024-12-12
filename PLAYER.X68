@@ -279,7 +279,7 @@ VTIMER      DS.W    1
 POINT       DS.W    1                          ;PUNTOS CONSEGUIDOS     
 SCRTRAP     EQU     1
 
------------------MOUSE DECLARATIONS----------
+;-----------------MOUSE DECLARATIONS----------
 MOUSETRAP   EQU     2
 ENATP       DS.W    1
 LASTENA     DS.W    1
