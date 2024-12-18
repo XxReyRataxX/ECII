@@ -17,71 +17,51 @@ MOVIMIENTO  DS.W    1
 SCRINTCT    DS.B    1                       ; INTERRUPT COUNTER
             DS.W    0
 
-START:                  ; first instruction of program
-    
-            
-
-
-            CLR.B   (SCRINTCT)
-            MOVE.L  #1,D1
-            MOVE.B  #33,D0
-            TRAP    #15                     ; ENSURE WINDOWED MODE
-            MOVE.L  #SCRWIDTH<<16|SCRHEIGH,D1
-            TRAP    #15                     ; SET RESOLUTION TO 640X480
-            MOVE.L  #DIBUJARC, ($80)         ; INSTALA TRAP 0 A DIBUJA
-            MOVE.L  #DIBUJARPANTALLA, ($84)  ; INSTALA DBUFFER MANAJAR A TRAP 1
-            MOVE.W  #SCRHEIGH/2, D6
+START:                  ; first instruction of program            
+;----------------------INIT------------------------------------------------
+            ORI.W   #$0700,SR             ;DISABLE ALL INT
+            JSR     SYSINIT
+           
+            MOVE.W  #SCRHEIGH/2, D6          ;INICIALIZAR COORDENADAS DE PLATAFORMA
             MOVE.W  #SCRWIDTH/2, D5
-            TRAP    #0
+    
+            ;DIBUJAR POR PRIMERA VEZ PLATAFORMA Y INICIALIZA EL MOVIEMINTO
+            TRAP    #1  
             MOVE.L  #1, MOVIMIENTO
             
 
 
-
-
-            ;HABILITAR DOUBLE BUFFER
-            MOVE.B  #92,D0
-            MOVE.B  #17,D1
-            TRAP    #15
-
-            ; INSTALAR INTERUPCIÓN DE TIEMPO REAL
-            MOVE.L  #SCRISR, ($64)          ; Instalar vector de interrupción de pantalla (Timer ISR)
-            MOVE.B  #32,D0
-            MOVE.B  #6,D1
-            MOVE.B  #$81,D2
-            MOVE.L  #20,D3
-            TRAP    #15
-;-------------------------SYNC-------------------------------
-
-            ; THE FOLLOWING SYNC STRATEGY IS ****WRONG****
-            ;MOVE.B  #23,D0
-            ;MOVE.L  #1,D1
-            ;TRAP    #15
-.LOOP      
-
-
-            TST.B   (SCRINTCT)              ; Verifica si ocurrió la interrupción
-            BEQ     .LOOP                   ; Si no, sigue esperando
-            CLR.B   (SCRINTCT)              ; Limpia la bandera de interrupción
-;-----------------------------------------------------------
-
+.BUCLE
+;-------------------------UPDATE-----------------------------
+;SI CHOCA CONTRA PARED, NEGAR A MOVIMIENTO PARA ACTUALIZAR LA COORDENADA
             ADD.W    (MOVIMIENTO),D5
             ; COMPARA SI CHOCA PARED :( CMP B,A
             ; SI A<B PUES NADA A DIBUJAR EN AUX
             CMP.W   #SCRWIDTH, D5
-            BLO .AUX
+            BLO .LOOP
             NEG.W   (MOVIMIENTO)
             ADD.W   (MOVIMIENTO),D5
+
+;-------------------------SYNC-------------------------------
+
+
+.LOOP      
+
+            TST.B   (SCRINTCT)              ; Verifica si ocurrió la interrupción
+            BEQ     .LOOP                   ; Si no, sigue esperando
+            CLR.B   (SCRINTCT)              ; Limpia la bandera de interrupción
+;-----------------------PLOT---------------------------------
+
+
            
 .AUX            
-            TRAP    #0                      ; DIBUJA RECTANGULO
-            TRAP    #1                      ; DBUFFER D:
-            BRA     .LOOP
+            TRAP    #1                      ; DIBUJA RECTANGULO
+            TRAP    #0                      ; DBUFFER D:
+            BRA     .BUCLE
 
 SIMHALT             ; halt simulator
     
-    ; ------------------------------------------------------------------------------
-
+; ------------------------------------------------------------------------------
 DIBUJARC
 ; DIBUJAR UN RECTANGULO, altura 40, ancho 100
 ; Draw rectangle defined by (Left X, Upper Y, Right X, Lower Y).  
@@ -121,7 +101,7 @@ DIBUJARC
             RTE   
 
 ; ------------------------------------------------------------------------------
-DIBUJARPANTALLA
+SCRPLOT
 ; UPDATES DOUBLE BUFFER
 ; INPUT    : NONE
 ; OUTPUT   : NONE
@@ -137,13 +117,75 @@ DIBUJARPANTALLA
             MOVE.W  #$FF00,D1
             TRAP    #15
             MOVEM.W (A7)+,D0-D1
-            RTE       
-            
+            RTE      
+; ------------------------------------------------------------------------------
+SCRINIT
+; INIT SCREEN. SET SCREEN RESOLUTION, SET WINDOWED MODE, CLEAR SCREEN,
+; ENABLE DOUBLE BUFFER, ENABLE TIMED INTERRUPT.
+; INPUT    : NONE
+; OUTPUT   : NONE
+; MODIFIES : NONE
+; ------------------------------------------------------------------------------
 
-SCRISR
-; Screen Interrupt Service Routine (ISR)
-; This routine is triggered by a screen refresh interrupt and will update the interrupt flag.
-; -----------------------------------------------------------------------------
-            ADDQ.B  #1,(SCRINTCT)           ; Increment the interrupt counter
+            MOVEM.L D0-D1,-(A7)
+
+            ; SET SCREEN RESOLUTION
+            MOVE.B  #33,D0 
+            MOVE.L  #SCRWIDTH<<16|SCRHEIGH,D1
+            TRAP    #15                     ; SET RESOLUTION TO 640X480
+            
+            ; SET WINDOWED MODE
+            MOVE.L  #1,D1
+            TRAP    #15
+            
+            ; CLEAR SCREEN
+            MOVE.B  #11,D0
+            MOVE.W  #$FF00,D1
+            TRAP    #15
+            
+            ; ENABLE DOUBLE BUFFER
+            MOVE.B  #92,D0
+            MOVE.B  #17,D1
+            TRAP    #15
+            
+            ; ENABLE TIMED INTERRUPT
+            MOVE.B  #32,D0
+            MOVE.B  #6,D1
+            MOVE.B  #$81,D2
+            MOVE.L  #20,D3
+            TRAP    #15
+            
+            ; CLEAR INTERRUPT COUNTER
+            CLR.B   (SCRINTCT)
+            
+            MOVEM.L (A7)+,D0-D1
+            
+            RTS            
+; ------------------------------------------------------------------------------
+SCRTIM
+; TIMED INTERRUPT SERVICE ROUTINE
+; INPUT    : NONE
+; OUTPUT   : NONE
+; MODIFIES : NONE
+; ------------------------------------------------------------------------------
+            ADDQ.B  #1,(SCRINTCT)
+            RTE
+
+
+SYSINIT
+; INITIALIZE SYSTEM.
+; INPUT    : NONE
+; OUTPUT   : NONE
+; MODIFIES : NONE
+; ------------------------------------------------------------------------------
+            MOVE.L  #SCRPLOT,($80)          ; INSTALA TRAP 0 A UPDATE DBUFFER
+            MOVE.L  #SCRTIM,($64)
+            MOVE.L  #DIBUJARC, ($84)         ; INSTALA TRAP 1 A DIBUJAR PLATAFORMA
+
+            JSR     SCRINIT
+            
+            MOVE.W  SR,-(A7)
+            ANDI.W  #$D8FF,(A7)
+            
             RTE
     END    START        ; last line of source
