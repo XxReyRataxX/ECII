@@ -253,8 +253,10 @@ STANEXT     DS.W    1                       ; NEXT GAME STATE
 
 BALPOSX     DS.W    1                       ; BALL X COORDINATE
 BALPOSY     DS.W    1                       ; BALL Y COORDINATE
-BALVELX     DS.W    1                       ; BALL X VELOCITY
-BALVELY     DS.W    1                       ; BALL Y VELOCITY
+BALVEL      EQU     3
+BALSPEEDX    DS.W    1                       ; BALL X VELOCITY
+BALSPEEDY    DS.W    1
+BALRAD     EQU     20
 
 ; --- PLAYER RELATED VARIABLES ------------------------------------------------
 
@@ -278,27 +280,19 @@ TIMER       DC.B    'TIMER: ',0
 VTIMER      DS.W    1
 POINT       DS.W    1                          ;PUNTOS CONSEGUIDOS     
 SCRTRAP     EQU     1
-
-;-----------------MOUSE DECLARATIONS----------
-MOUSETRAP   EQU     2
-ENATP       DS.W    1
-LASTENA     DS.W    1
-MOUSEPOSX   DS.W    1
-MOUSEPOSY   DS.W    1
 START:                  ; first instruction of program
            CLR.L VTIMER
             JSR SCRINIT
-           JSR KBDINIT
-	   JSR MOUSEINIT
-
+           JSR KBDINIT 
+            JSR BALINIT
            JSR PLRINIT
            CLR.L D2
-.LOOP       
-            TRAP    #MOUSETRAP
-	    TRAP    #KBDTRAP                ; READ KEYBOARD
+.LOOP       TRAP    #KBDTRAP                ; READ KEYBOARD
             JSR     PLRUPD
-
+            JSR BALUPD
+            
             JSR     DIBUJAR
+            
             
 .WINT       TST.B   (SCRINTCT)              ; WAIT FOR INTERRUPT
             BEQ     .WINT
@@ -477,72 +471,11 @@ LOOPDIB:
             
             TRAP #15 ;Dibujar pixel
             DBRA D4,LOOPDIB
-            
+            JSR BALPLOT
             MOVEM.L (A7)+,D0-D6
             MOVEM.L (A7)+,A0-A1
             RTS
-MOUSEINIT     
-    ; INITIALIZES THE SYSTEM VARIABLES KBDSYS AND KBDVAL
-; INPUT    - NONE
-; OUTPUT   - NONE
-; MODIFIES - NONE
-; -----------------------------------------------------------------------------
-            CLR.W   (MOUSEPOSX)                    ; INIT VARS
-            CLR.W   (MOUSEPOSY)
-            CLR.W   (ENATP)
-            CLR.W   (LASTENA)
-	
-            MOVE.L  #REVISION, ($80+MOUSETRAP*4)    ; INSTALL
-            RTS
             
-REVISION:
-            MOVEM.L D0-D7,-(A7)
-
-	; READ CURRENT STATE OF MOUSE AND CHANGE MOUSE COORDINATES
-	MOVE.B  #61,D0
-	MOVE.B  #00,D1
-	
-	TRAP    #15
-            MOVE.W  D1,(MOUSEPOSX)
-            
-
-            
-	
-
-            SWAP    D1            ; Intercambia los 16 bits superiores e inferiores de D1
-
-            MOVE.W  D1,(MOUSEPOSY)
-            SWAP    D1
-	
-
-	; IF LEFT CLICK PRESSED AND IT'S INSIDE THE BUTTON ADD 1
-	BTST    #0,D0
-	
-            BEQ     NOT_PRESSED
-            CMP.W   #0,(ENATP)
-            BNE CHECKTIMER
-
-PRESSED:
-            MOVE.W (VTIMER),(LASTENA)
-            MOVE.W (MOUSEPOSX),(PLRPOSX)
-            MOVE.W (MOUSEPOSY),(PLRPOSY)
-            MOVE.W #1,(ENATP)
-	BRA     NOT_PRESSED
-
-CHECKTIMER:
-            MOVE.W (VTIMER),D3
-            SUB.W (LASTENA),D3
-            
-            CMP #2,D3
-            BNE NOT_PRESSED
-            CLR.W (ENATP)
-            
-         
-NOT_PRESSED:          
-	MOVEM.L  (A7)+,D0-D7
-	RTE
-	
-           
 ; -----------------------------------------------------------------------------
 SCRUPD
 ; TRAP SERVICE ROUTINE IN CHARGE OF VISUALIZING CURRENT FRAME AND CLEARING
@@ -559,6 +492,218 @@ SCRUPD
             TRAP    #15
             MOVEM.W (A7)+,D0-D1
             RTE
+; ==============================================================================
+; BALL MANAGEMENT (AGENT)
+; BALPOSX (W)  (A0)
+; BALPOSY (W) 2(A0)
+; BALVELX (W) 4(A0)
+; BALVELY (W) 6(A0)
+; ==============================================================================
+            
+; ------------------------------------------------------------------------------
+BALINIT
+; INITIALIZE BALL.
+; INPUT    : A0 POINTER TO THE INSTANCE VARIABLES 
+; OUTPUT   : NONE
+; MODIFIES : NONE
+; ------------------------------------------------------------------------------
+            MOVEM.L D0/A2/A1/D1/D2,-(A7)
+            CLR D2
+            JSR     UTLRAND
+            LEA     .VELVEC,A1
+            LEA     .POSVEC,A2
+            AND.L   #$0000000C,D0
+            MOVE.L  (A2,D0),(BALPOSX)
+            
+            
+            MOVE.W D0,D1  
+            CLR.L D0
+            JSR     UTLRAND
+            BTST #0, D0        ; Comprueba el quinto bit (bit 4) de D0.
+            BNE .BitIsClear     ; Salta si el quinto bit es 0.
+            MOVE.W D1,D2
+            CMP #12,D2
+            BEQ .BitIsClear
+            ADDQ.W #4,D1
+            
+.BitIsClear  
+            
+            MOVE.L  (A1,D1),BALSPEEDX
+            
+            
+            MOVEM.L (A7)+,D0/A2/A1/D1/D2
+            RTS
+
+.VELVEC     DC.W    BALVEL,-BALVEL      ;0
+            DC.W    BALVEL,BALVEL       ;4
+            DC.W    -BALVEL,-BALVEL     ;8
+            DC.W    -BALVEL,BALVEL          ;12
+.POSVEC     DC.W    0,160     ;0
+            DC.W    0,320       ;4
+            DC.W    SCRWIDTH,160      ;8
+            DC.W    SCRWIDTH,320       ;12
+
+            
+; ------------------------------------------------------------------------------
+BALUPD
+; UPDATES THE BALL.
+; INPUT    : A0 POINTER TO THE INSTANCE VARIABLES  
+; OUTPUT   : NONE
+; MODIFIES : NONE
+; ------------------------------------------------------------------------------
+
+            MOVEM.W D0-D2,-(A7)
+            LEA BALPOSX,A0
+
+            ; UPDATE BALL COORDINATES
+            MOVE.W  (BALPOSX),D0
+            MOVE.W  (BALPOSY),D1
+            
+            ADD.W   (BALSPEEDX),D0
+            ADD.W   (BALSPEEDY),D1
+            
+            
+            ; CHECK HORIZONTAL COLLISIONS
+            CMP.W   #SCRWIDTH-BALRAD,D0
+            BGT     .COLRGT
+            CMP.W   #BALRAD,D0
+            BLT     .COLLFT
+            
+            ; CHECK VERTICAL COLLISIONS
+.CHKVERT    CMP.W   #SCRHEIGH-BALRAD,D1
+            BGT     .COLBOT
+            CMP.W   #BALRAD,D1
+            BLT     .COLTOP
+            BRA     .DONE
+            
+            ; RIGHT SIDE COLLISION
+.COLRGT     NEG.W   (BALSPEEDX)
+            MOVE.W  #SCRWIDTH-BALRAD,D0
+            BRA     .CHKVERT
+            
+            ; LEFT SIDE COLLISION
+.COLLFT     NEG.W (BALSPEEDX)
+            MOVE.W #BALRAD,D0
+            BRA     .CHKVERT
+
+            ; BOTTOM COLLISION
+.COLBOT     NEG.W   (BALSPEEDY)
+            MOVE.W  #SCRHEIGH-BALRAD,D1
+            BRA     .DONE
+            
+            ; TOP COLLISION
+.COLTOP     NEG.W   (BALSPEEDY)
+            MOVE.W  #BALRAD,D1
+            
+
+
+            
+
+            ; STORE POSITION
+.DONE       MOVE.W  D0,(BALPOSX)
+            MOVE.W  D1,(BALPOSY)
+
+            MOVEM.W (A7)+,D0-D2
+
+            RTS
+            
+; ------------------------------------------------------------------------------
+BALPLOT
+; PLOT THE BALL.
+; INPUT    : A0 POINTER TO THE INSTANCE VARIABLES 
+; OUTPUT   : NONE
+; MODIFIES : NONE
+; ------------------------------------------------------------------------------
+            MOVEM.L D0-D4,-(A7)
+            ; UPDATE BALL COORDINATES
+            
+            ; UPDATE BALL COORDINATES
+            
+            
+            ; SET PEN COLOR
+            MOVE.B  #80,D0
+            MOVE.L  #$00FF0000,D1
+            TRAP    #15
+            
+            ; SET FILL COLOR
+            MOVE.B  #81,D0
+            MOVE.L  #$00FF0000,D1
+            TRAP    #15
+            
+            ; DEFINE COORDINATES
+            MOVE.W  (BALPOSX),D1
+            SUB.W   #BALRAD,D1
+            MOVE.W  (BALPOSY),D2
+            SUB.W   #BALRAD,D2
+            MOVE.W  D1,D3
+            ADD.W   #2*BALRAD,D3
+            MOVE.W  D2,D4
+            ADD.W   #2*BALRAD,D4
+            
+            ; DRAW CIRCLE
+            MOVE.B  #88,D0
+            TRAP    #15
+            
+            MOVEM.L (A7)+,D0-D4
+
+            RTS
+
+
+
+
+UTLRNDIX    DS.B    1                       ; NEXT INDEX TO RANDOM NUMBER
+            DS.W    0
+; -----------------------------------------------------------------------------
+UTLRAND
+; PROVIDES A PSEUDO-RANDOM BYTE
+; INPUT    - NONE
+; OUTPUT   - D0.L RANDOM VALUE (ONLY BYTE)
+; MODIFIES - NONE (ASIDE OF OUTPUT)
+; -----------------------------------------------------------------------------
+            MOVE.L  A0,-(A7)
+            LEA     .RANDVEC,A0
+            CLR.L   D0
+            MOVE.B  (UTLRNDIX),D0
+            MOVE.B  (A0,D0.L),D0
+            ADDQ.B  #1,(UTLRNDIX)
+            MOVE.L  (A7)+,A0
+            RTS
+
+
+.RANDVEC    DC.B    162, 238, 154, 12 , 245, 36 , 32 , 103
+            DC.B    42 , 163, 81 , 38 , 224, 172, 19 , 69
+            DC.B    117, 81 , 202, 253, 51 , 235, 108, 154
+            DC.B    96 , 204, 231, 184, 154, 235, 34 , 203
+            DC.B    29 , 118, 181, 149, 176, 137, 62 , 108
+            DC.B    57 , 21 , 72 , 201, 110, 202, 159, 41
+            DC.B    67 , 231, 226, 124, 55 , 37 , 84 , 62
+            DC.B    233, 148, 206, 233, 228, 82 , 243, 78
+            DC.B    55 , 109, 154, 132, 162, 40 , 30 , 39
+            DC.B    25 , 226, 198, 119, 128, 212, 232, 225
+            DC.B    10 , 90 , 50 , 103, 51 , 194, 222, 40
+            DC.B    89 , 128, 220, 14 , 87 , 252, 243, 252
+            DC.B    138, 171, 188, 247, 7  , 77 , 29 , 234
+            DC.B    239, 213, 119, 110, 30 , 187, 131, 23
+            DC.B    214, 224, 42 , 143, 189, 40 , 212, 130
+            DC.B    19 , 79 , 102, 236, 10 , 100, 122, 188
+            DC.B    86 , 82 , 154, 22 , 155, 144, 7  , 199
+            DC.B    6  , 138, 164, 247, 1  , 218, 166, 82
+            DC.B    242, 231, 119, 40 , 177, 118, 220, 102
+            DC.B    164, 66 , 227, 129, 177, 103, 165, 108
+            DC.B    191, 206, 250, 22 , 191, 56 , 30 , 161
+            DC.B    209, 139, 80 , 12 , 95 , 73 , 168, 56
+            DC.B    222, 76 , 20 , 162, 64 , 220, 93 , 12
+            DC.B    182, 155, 10 , 56 , 93 , 171, 89 , 6
+            DC.B    226, 27 , 221, 117, 21 , 130, 101, 18
+            DC.B    138, 38 , 81 , 48 , 159, 71 , 57 , 21
+            DC.B    30 , 138, 187, 113, 198, 110, 185, 152
+            DC.B    159, 71 , 229, 52 , 148, 39 , 77 , 6
+            DC.B    125, 6  , 214, 186, 48 , 15 , 212, 22
+            DC.B    236, 127, 126, 3  , 207, 45 , 193, 2
+            DC.B    148, 91 , 35 , 242, 139, 205, 248, 237
+            DC.B    116, 51 , 236, 185, 15 , 213, 221, 6
+
+
     END    START        ; last line of source
 
 
@@ -570,3 +715,12 @@ SCRUPD
 
 
 
+
+
+
+
+
+*~Font name~Courier New~
+*~Font size~10~
+*~Tab type~0~
+*~Tab size~4~
