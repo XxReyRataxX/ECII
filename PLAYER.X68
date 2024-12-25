@@ -237,6 +237,7 @@ KBDDOWN     EQU     'S'
 KBDRIGHT    EQU     'D'
 KBDUP       EQU     'W'
 KBDLEFT     EQU     'A'
+KBDSHIELD   EQU     'E'
 KBDESC      EQU     $20                     ; SPACE KEY (ESCUDO)
 ; --- TIMED INTERRUPT RELATED VARIABLES ----------------------------------------
 
@@ -280,19 +281,29 @@ TIMER       DC.B    'TIMER: ',0
 VTIMER      DS.W    1
 POINT       DS.W    1                          ;PUNTOS CONSEGUIDOS     
 SCRTRAP     EQU     1
+
+;-----------------MOUSE DECLARATIONS----------
+MOUSETRAP   EQU     2
+ENATP       DS.W    1
+LASTENA     DS.W    1
+MOUSEPOSX   DS.W    1
+MOUSEPOSY   DS.W    1
 START:                  ; first instruction of program
            CLR.L VTIMER
             JSR SCRINIT
-           JSR KBDINIT 
-            JSR BALINIT
+           JSR KBDINIT
+           JSR BALINIT
+            JSR MOUSEINIT
+
            JSR PLRINIT
            CLR.L D2
-.LOOP       TRAP    #KBDTRAP                ; READ KEYBOARD
+.LOOP       
+            TRAP    #MOUSETRAP
+	    TRAP    #KBDTRAP                ; READ KEYBOARD
             JSR     PLRUPD
             JSR BALUPD
-            
+
             JSR     DIBUJAR
-            
             
 .WINT       TST.B   (SCRINTCT)              ; WAIT FOR INTERRUPT
             BEQ     .WINT
@@ -370,6 +381,15 @@ KBDREAD
             AND.B   D2,D0
             MOVE.B  D2,(KBDVAL)             ; STORE VALUES (PRESS AND EDGE)
             MOVE.B  D0,(KBDEDGE)
+            ;SHIELD
+            
+            MOVE.B  #19,D0
+            MOVE.L  #KBDSHIELD<<24,D1
+            TRAP #15
+            
+            BTST.L #24,D1
+            BNE .SHIELDPLOT
+.RETURN
             MOVEM.L (A7)+,D0-D3
             RTE
 
@@ -378,6 +398,39 @@ KBDREAD
             ROXL.B  #1,D2                   ; PER KEYPRESS ENCODING
             DBRA.W  D3,.LOOP
             RTS
+           
+           
+
+
+
+            
+
+.SHIELDPLOT
+            MOVE.L #$00FF0000,D1
+            MOVE.W #80,D0        ; SET PEN COLOR
+            TRAP #15
+            MOVE.W (PLRPOSX),D5
+            MOVE.W (PLRPOSY),D6
+            ADD.W #15,D5 
+            ADD.W #15,D6
+            
+         
+           SUB.W #30,D5
+            MOVE.W D5,D1
+  
+            ADD.W #60,D5
+            MOVE.W D5,D3
+            
+            SUB.W #30,D6
+            MOVE.W D6,D2
+            ADD.W #60,D6
+            
+            MOVE.W D6,D4
+            MOVE.W #91,D0
+            TRAP #15
+            BRA .RETURN
+            
+            
 KBDINIT     
     ; INITIALIZES THE SYSTEM VARIABLES KBDSYS AND KBDVAL
 ; INPUT    - NONE
@@ -472,10 +525,74 @@ LOOPDIB:
             TRAP #15 ;Dibujar pixel
             DBRA D4,LOOPDIB
             JSR BALPLOT
+            
             MOVEM.L (A7)+,D0-D6
             MOVEM.L (A7)+,A0-A1
             RTS
+MOUSEINIT     
+    ; INITIALIZES THE SYSTEM VARIABLES KBDSYS AND KBDVAL
+; INPUT    - NONE
+; OUTPUT   - NONE
+; MODIFIES - NONE
+; -----------------------------------------------------------------------------
+            CLR.W   (MOUSEPOSX)                    ; INIT VARS
+            CLR.W   (MOUSEPOSY)
+            CLR.W   (ENATP)
+            CLR.W   (LASTENA)
+	
+            MOVE.L  #REVISION, ($80+MOUSETRAP*4)    ; INSTALL
+            RTS
             
+REVISION:
+            MOVEM.L D0-D7,-(A7)
+
+	; READ CURRENT STATE OF MOUSE AND CHANGE MOUSE COORDINATES
+	MOVE.B  #61,D0
+	MOVE.B  #00,D1
+	
+	TRAP    #15
+            MOVE.W  D1,(MOUSEPOSX)
+            
+
+            
+	
+
+            SWAP    D1            ; Intercambia los 16 bits superiores e inferiores de D1
+
+            MOVE.W  D1,(MOUSEPOSY)
+            SWAP    D1
+	
+
+	; IF LEFT CLICK PRESSED AND IT'S INSIDE THE BUTTON ADD 1
+	BTST    #0,D0
+	
+            BEQ     NOT_PRESSED
+            CMP.W   #0,(ENATP)
+            BNE CHECKTIMER
+
+PRESSED:
+             MOVE.W (VTIMER),(LASTENA)
+            MOVE.W (MOUSEPOSX),(PLRPOSX)
+            MOVE.W (MOUSEPOSY),(PLRPOSY)
+            MOVE.W #1,(ENATP)
+            MOVE.W #1,(ENATP)
+            BRA NOT_PRESSED
+            
+
+CHECKTIMER:
+            MOVE.W (VTIMER),D3
+            SUB.W (LASTENA),D3
+            
+            CMP #2,D3
+            BNE NOT_PRESSED
+            CLR.W (ENATP)
+            
+         
+NOT_PRESSED:          
+	MOVEM.L  (A7)+,D0-D7
+	RTE
+	
+           
 ; -----------------------------------------------------------------------------
 SCRUPD
 ; TRAP SERVICE ROUTINE IN CHARGE OF VISUALIZING CURRENT FRAME AND CLEARING
@@ -492,6 +609,7 @@ SCRUPD
             TRAP    #15
             MOVEM.W (A7)+,D0-D1
             RTE
+            
 ; ==============================================================================
 ; BALL MANAGEMENT (AGENT)
 ; BALPOSX (W)  (A0)
@@ -718,9 +836,3 @@ UTLRAND
 
 
 
-
-
-*~Font name~Courier New~
-*~Font size~10~
-*~Tab type~0~
-*~Tab size~4~
