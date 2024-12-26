@@ -692,7 +692,7 @@ BALUPD
             BGT     .COLBOT
             CMP.W   #BALRAD,D1
             BLT     .COLTOP
-            BRA     .DONE
+            BRA     .PLRCOLISION
             
             ; RIGHT SIDE COLLISION
 .COLRGT     NEG.W   (BALSPEEDX)
@@ -707,11 +707,29 @@ BALUPD
             ; BOTTOM COLLISION
 .COLBOT     NEG.W   (BALSPEEDY)
             MOVE.W  #SCRHEIGH-BALRAD,D1
-            BRA     .DONE
+            BRA     .PLRCOLISION
             
             ; TOP COLLISION
 .COLTOP     NEG.W   (BALSPEEDY)
             MOVE.W  #BALRAD,D1
+            
+.PLRCOLISION
+            MOVE.W (PLRPOSX),D2
+            MOVE.W (PLRPOSY),D3
+            MOVE.W D0,D4
+            ADD.W #BALRAD,D4
+            MOVE.W (PLRWIDTH),D5
+            
+            MOVE.W D1,D5
+            ADD.W #BALRAD,D5
+            MOVE.W (PLRHEIGH),D7
+            
+            JSR UTLCHCOL
+            CMP #0,D0
+            BNE .DONE2
+           
+            
+            
             
 
 
@@ -722,8 +740,11 @@ BALUPD
             MOVE.W  D1,(BALPOSY)
 
             MOVEM.W (A7)+,D0-D2
+             RTS
+            
+.DONE2
+            SIMHALT
 
-            RTS
             
 ; ------------------------------------------------------------------------------
 BALPLOT
@@ -820,9 +841,43 @@ UTLRAND
             DC.B    236, 127, 126, 3  , 207, 45 , 193, 2
             DC.B    148, 91 , 35 , 242, 139, 205, 248, 237
             DC.B    116, 51 , 236, 185, 15 , 213, 221, 6
+            
+; -----------------------------------------------------------------------------
+UTLCHCOL
+; CHECKS COLLISION
+; INPUT    - D0.W X0 COORDINATE
+;            D1.W Y0 COORDINATE
+;            D2.W X1 COORDINATE
+;            D3.W Y1 COORDINATE
+;            D4.W WIDTH 0
+;            D5.W WIDTH 1
+;            D6.W HEIGHT 0
+;            D7.W HEIGHT 1
+; OUTPUT   - D0.B=FF - COLLISION, =0 - NO COLLISION
+; MODIFIES - NONE
+; -----------------------------------------------------------------------------
+            MOVEM.W D4-D7,-(A7)
+            ADD.W   D0,D4
+            CMP.W   D2,D4
+            BLE     .NOCOL
+            ADD.W   D2,D5
+            CMP.W   D0,D5
+            BLE     .NOCOL
+            ADD.W   D1,D6
+            CMP.W   D3,D6
+            BLE     .NOCOL
+            ADD.W   D3,D7
+            CMP.W   D1,D7
+            BLE     .NOCOL
+            MOVE.B  #$FF,D0
+            BRA     .END
+.NOCOL      CLR.B   D0
+.END        MOVEM.W (A7)+,D4-D7
+            RTS
 
 
     END    START        ; last line of source
+
 
 
 
