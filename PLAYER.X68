@@ -5,7 +5,11 @@
 * Description:
 *-----------------------------------------------------------
     ORG    $1000
-    
+            INCLUDE "DMMCONST.X68"
+            INCLUDE "DMMVARS.X68"
+            
+            INCLUDE "DMMCODE.X68"
+                
 PIXEL:
 	DC.L $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000
 	DC.L $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000
@@ -237,7 +241,6 @@ KBDDOWN     EQU     'S'
 KBDRIGHT    EQU     'D'
 KBDUP       EQU     'W'
 KBDLEFT     EQU     'A'
-KBDSHIELD   EQU     'E'
 KBDESC      EQU     $20                     ; SPACE KEY (ESCUDO)
 ; --- TIMED INTERRUPT RELATED VARIABLES ----------------------------------------
 
@@ -252,11 +255,11 @@ STANEXT     DS.W    1                       ; NEXT GAME STATE
 
 ; --- BALL RELATED VARIABLES ---------------------------------------------------
 
-BALPOSX     DS.W    1                       ; BALL X COORDINATE
-BALPOSY     DS.W    1                       ; BALL Y COORDINATE
+;BALPOSX     DS.W    1                       ; BALL X COORDINATE
+;BALPOSY     DS.W    1                       ; BALL Y COORDINATE
+;BALSPEEDX    DS.W    1                       ; BALL X VELOCITY
+;BALSPEEDY    DS.W    1
 BALVEL      EQU     3
-BALSPEEDX    DS.W    1                       ; BALL X VELOCITY
-BALSPEEDY    DS.W    1
 BALRAD     EQU     20
 
 ; --- PLAYER RELATED VARIABLES ------------------------------------------------
@@ -281,29 +284,33 @@ TIMER       DC.B    'TIMER: ',0
 VTIMER      DS.W    1
 POINT       DS.W    1                          ;PUNTOS CONSEGUIDOS     
 SCRTRAP     EQU     1
-
-;-----------------MOUSE DECLARATIONS----------
-MOUSETRAP   EQU     2
-ENATP       DS.W    1
-LASTENA     DS.W    1
-MOUSEPOSX   DS.W    1
-MOUSEPOSY   DS.W    1
 START:                  ; first instruction of program
            CLR.L VTIMER
+           JSR DMMINIT
+           JSR UTLINIT
             JSR SCRINIT
-           JSR KBDINIT
-           JSR BALINIT
-            JSR MOUSEINIT
-
+           JSR KBDINIT 
+            ;JSR BALINIT
            JSR PLRINIT
+          LEA BALINIT,A1
+          LEA BALUPD, A2
+          LEA BALPLOT,A3
+          MOVE.W #1,D0
+          JSR      AGLADD
+           
+           
            CLR.L D2
-.LOOP       
-            TRAP    #MOUSETRAP
-	    TRAP    #KBDTRAP                ; READ KEYBOARD
+.LOOP       TRAP    #KBDTRAP                ; READ KEYBOARD
+            JSR AGLUPD
             JSR     PLRUPD
-            JSR BALUPD
-
+            
+            JSR AGLPLOT
             JSR     DIBUJAR
+            LEA BALINIT,A1
+          LEA BALUPD, A2
+          LEA BALPLOT,A3
+          MOVE.W #1,D0
+          JSR      AGLADD
             
 .WINT       TST.B   (SCRINTCT)              ; WAIT FOR INTERRUPT
             BEQ     .WINT
@@ -381,15 +388,6 @@ KBDREAD
             AND.B   D2,D0
             MOVE.B  D2,(KBDVAL)             ; STORE VALUES (PRESS AND EDGE)
             MOVE.B  D0,(KBDEDGE)
-            ;SHIELD
-            
-            MOVE.B  #19,D0
-            MOVE.L  #KBDSHIELD<<24,D1
-            TRAP #15
-            
-            BTST.L #24,D1
-            BNE .SHIELDPLOT
-.RETURN
             MOVEM.L (A7)+,D0-D3
             RTE
 
@@ -398,39 +396,6 @@ KBDREAD
             ROXL.B  #1,D2                   ; PER KEYPRESS ENCODING
             DBRA.W  D3,.LOOP
             RTS
-           
-           
-
-
-
-            
-
-.SHIELDPLOT
-            MOVE.L #$00FF0000,D1
-            MOVE.W #80,D0        ; SET PEN COLOR
-            TRAP #15
-            MOVE.W (PLRPOSX),D5
-            MOVE.W (PLRPOSY),D6
-            ADD.W #15,D5 
-            ADD.W #15,D6
-            
-         
-           SUB.W #30,D5
-            MOVE.W D5,D1
-  
-            ADD.W #60,D5
-            MOVE.W D5,D3
-            
-            SUB.W #30,D6
-            MOVE.W D6,D2
-            ADD.W #60,D6
-            
-            MOVE.W D6,D4
-            MOVE.W #91,D0
-            TRAP #15
-            BRA .RETURN
-            
-            
 KBDINIT     
     ; INITIALIZES THE SYSTEM VARIABLES KBDSYS AND KBDVAL
 ; INPUT    - NONE
@@ -493,7 +458,7 @@ PLRUPD
             RTS
 DIBUJAR     ;DIBUJAMOS DESDE 0,0 HASTA A SABER DONDE
             MOVEM.L D0-D6,-(A7)
-            MOVEM.L A0-A1,-(A7)
+            MOVEM.L A1-A5,-(A7)
             
             LEA TIMER,A1
             CLR.L D1
@@ -503,7 +468,7 @@ DIBUJAR     ;DIBUJAMOS DESDE 0,0 HASTA A SABER DONDE
             TRAP #15
             MOVE.W (PLRPOSX),D5
             MOVE.W (PLRPOSY),D6
-            LEA PIXEL,A0
+            LEA PIXEL,A5
             LEA X,A1
             LEA Y,A2
             MOVE.W #896,D4
@@ -514,7 +479,7 @@ DIBUJAR     ;DIBUJAMOS DESDE 0,0 HASTA A SABER DONDE
 LOOPDIB:
             
             MOVE.B #80,D0
-            MOVE.L (A0)+,D1
+            MOVE.L (A5)+,D1
             TRAP #15 ;PEN COLOR
             MOVE.B #82,D0
             MOVE.L (A1)+,D1
@@ -524,75 +489,12 @@ LOOPDIB:
             
             TRAP #15 ;Dibujar pixel
             DBRA D4,LOOPDIB
-            JSR BALPLOT
+            ;JSR BALPLOT
             
             MOVEM.L (A7)+,D0-D6
-            MOVEM.L (A7)+,A0-A1
-            RTS
-MOUSEINIT     
-    ; INITIALIZES THE SYSTEM VARIABLES KBDSYS AND KBDVAL
-; INPUT    - NONE
-; OUTPUT   - NONE
-; MODIFIES - NONE
-; -----------------------------------------------------------------------------
-            CLR.W   (MOUSEPOSX)                    ; INIT VARS
-            CLR.W   (MOUSEPOSY)
-            CLR.W   (ENATP)
-            CLR.W   (LASTENA)
-	
-            MOVE.L  #REVISION, ($80+MOUSETRAP*4)    ; INSTALL
+            MOVEM.L (A7)+,A1-A5
             RTS
             
-REVISION:
-            MOVEM.L D0-D7,-(A7)
-
-	; READ CURRENT STATE OF MOUSE AND CHANGE MOUSE COORDINATES
-	MOVE.B  #61,D0
-	MOVE.B  #00,D1
-	
-	TRAP    #15
-            MOVE.W  D1,(MOUSEPOSX)
-            
-
-            
-	
-
-            SWAP    D1            ; Intercambia los 16 bits superiores e inferiores de D1
-
-            MOVE.W  D1,(MOUSEPOSY)
-            SWAP    D1
-	
-
-	; IF LEFT CLICK PRESSED AND IT'S INSIDE THE BUTTON ADD 1
-	BTST    #0,D0
-	
-            BEQ     NOT_PRESSED
-            CMP.W   #0,(ENATP)
-            BNE CHECKTIMER
-
-PRESSED:
-             MOVE.W (VTIMER),(LASTENA)
-            MOVE.W (MOUSEPOSX),(PLRPOSX)
-            MOVE.W (MOUSEPOSY),(PLRPOSY)
-            MOVE.W #1,(ENATP)
-            MOVE.W #1,(ENATP)
-            BRA NOT_PRESSED
-            
-
-CHECKTIMER:
-            MOVE.W (VTIMER),D3
-            SUB.W (LASTENA),D3
-            
-            CMP #2,D3
-            BNE NOT_PRESSED
-            CLR.W (ENATP)
-            
-         
-NOT_PRESSED:          
-	MOVEM.L  (A7)+,D0-D7
-	RTE
-	
-           
 ; -----------------------------------------------------------------------------
 SCRUPD
 ; TRAP SERVICE ROUTINE IN CHARGE OF VISUALIZING CURRENT FRAME AND CLEARING
@@ -609,7 +511,87 @@ SCRUPD
             TRAP    #15
             MOVEM.W (A7)+,D0-D1
             RTE
-            
+; =============================================================================
+; AGENT MANAGEMENT
+; EACH AGENT HAS A DATA BLOCK FROM DMM AS FOLLOWS:
+; +0 - LONG : UPDATE SUBROUTINE POINTER
+; +4 - LONG : PLOT SUBROUTINE POINTER
+; +8:END    : DATA (AGENT SPECIFIC)
+; =============================================================================
+
+; -----------------------------------------------------------------------------
+AGLADD
+; CREATES A NEW AGENT
+; INPUT    - A1 - POINTER TO AGENT INIT FUNCTION
+;            A2 - POINTER TO AGENT UPDATE FUNCTION
+;            A3 - POINTER TO AGENT PLOT FUNCTION
+;            D0 - AGENT TYPE (USED AS OWNER BY DMM)
+;            D1 - AGENT INITIALIZATION PARAMETER 1
+;            D2 - AGENT INITIALIZATION PARAMETER 2
+;            D3 - AGENT INITIALIZATION PARAMETER 3
+; OUTPUT   - NONE
+; MODIFIES - NONE
+; -----------------------------------------------------------------------------
+            MOVE.L  A0,-(A7)
+            JSR     DMMALLOC
+            CMP.L   #0,A0
+            BEQ     .END
+            MOVE.L  A2,(A0)+
+            MOVE.L  A3,(A0)+
+            JSR     (A1)
+.END        MOVE.L  (A7)+,A0
+            RTS
+
+; -----------------------------------------------------------------------------
+AGLUPD
+; UPDATES THE AGENT LIST. PRIOR TO CALLING THE UPDATE FUNCTIONS, A0 IS SET
+; TO THE DATA BLOCK OF THE CORRESPONDING SLOT.
+; INPUT    - NONE
+; OUTPUT   - NONE
+; MODIFIES - NONE
+; -----------------------------------------------------------------------------
+            MOVEM.L A0-A1,-(A7)
+            JSR     DMMFIRST
+.LOOP       CMP.L   #0,A0
+            BEQ     .END
+            MOVE.L  (A0),A1
+            ADD.L   #8,A0
+            JSR     (A1)
+            JSR     DMMNEXT
+            BRA     .LOOP
+.END        MOVEM.L (A7)+,A0-A1
+            RTS
+
+; -----------------------------------------------------------------------------
+AGLPLOT
+; PLOTS THE AGENT LIST. PRIOR TO CALLING THE UPDATE FUNCTIONS, A0 IS SET
+; TO THE DATA BLOCK OF THE CORRESPONDING SLOT.
+; INPUT    - NONE
+; OUTPUT   - NONE
+; MODIFIES - NONE
+; -----------------------------------------------------------------------------
+            MOVEM.L A0-A1,-(A7)
+            JSR     DMMFIRST
+.LOOP       CMP.L   #0,A0
+            BEQ     .END
+            MOVE.L  4(A0),A1
+            ADD.L   #8,A0
+            JSR     (A1)
+            JSR     DMMNEXT
+            BRA     .LOOP
+.END        MOVEM.L (A7)+,A0-A1
+            RTS
+
+; -----------------------------------------------------------------------------
+AGLKILL     EQU     DMMFREE
+; KILLS THE AGENT BY RELEASING ITS MEMORY
+; INPUT    - A0 POINTER WITHIN THE AGENT MEMORY
+; OUTPUT   - NONE
+; MODIFIES - NONE
+; NOTE     - IT IS JUST A WRAPPER FOR DMMFREE
+; -----------------------------------------------------------------------------
+
+
 ; ==============================================================================
 ; BALL MANAGEMENT (AGENT)
 ; BALPOSX (W)  (A0)
@@ -625,13 +607,14 @@ BALINIT
 ; OUTPUT   : NONE
 ; MODIFIES : NONE
 ; ------------------------------------------------------------------------------
-            MOVEM.L D0/A2/A1/D1/D2,-(A7)
+            MOVEM.L D0-A2,-(A7)
+
             CLR D2
             JSR     UTLRAND
             LEA     .VELVEC,A1
             LEA     .POSVEC,A2
             AND.L   #$0000000C,D0
-            MOVE.L  (A2,D0),(BALPOSX)
+            MOVE.L  (A2,D0),(A0)
             
             
             MOVE.W D0,D1  
@@ -646,10 +629,11 @@ BALINIT
             
 .BitIsClear  
             
-            MOVE.L  (A1,D1),BALSPEEDX
+            MOVE.L  (A1,D1),4(A0)
             
             
-            MOVEM.L (A7)+,D0/A2/A1/D1/D2
+            MOVEM.L (A7)+,D0-A2
+
             RTS
 
 .VELVEC     DC.W    BALVEL,-BALVEL      ;0
@@ -671,14 +655,14 @@ BALUPD
 ; ------------------------------------------------------------------------------
 
             MOVEM.W D0-D2,-(A7)
-            LEA BALPOSX,A0
+            
 
             ; UPDATE BALL COORDINATES
-            MOVE.W  (BALPOSX),D0
-            MOVE.W  (BALPOSY),D1
+            MOVE.W  (A0),D0
+            MOVE.W  2(A0),D1
             
-            ADD.W   (BALSPEEDX),D0
-            ADD.W   (BALSPEEDY),D1
+            ADD.W   4(A0),D0
+            ADD.W   6(A0),D1
             
             
             ; CHECK HORIZONTAL COLLISIONS
@@ -692,59 +676,38 @@ BALUPD
             BGT     .COLBOT
             CMP.W   #BALRAD,D1
             BLT     .COLTOP
-            BRA     .PLRCOLISION
+            BRA     .DONE
             
             ; RIGHT SIDE COLLISION
-.COLRGT     NEG.W   (BALSPEEDX)
+.COLRGT     NEG.W   4(A0)
             MOVE.W  #SCRWIDTH-BALRAD,D0
             BRA     .CHKVERT
             
             ; LEFT SIDE COLLISION
-.COLLFT     NEG.W (BALSPEEDX)
+.COLLFT     NEG.W   4(A0)
             MOVE.W #BALRAD,D0
             BRA     .CHKVERT
 
             ; BOTTOM COLLISION
-.COLBOT     NEG.W   (BALSPEEDY)
+.COLBOT     NEG.W   6(A0)
             MOVE.W  #SCRHEIGH-BALRAD,D1
-            BRA     .PLRCOLISION
+            BRA     .DONE
             
             ; TOP COLLISION
-.COLTOP     NEG.W   (BALSPEEDY)
+.COLTOP     NEG.W   6(A0)
             MOVE.W  #BALRAD,D1
-            
-.PLRCOLISION
-            MOVE.W (PLRPOSX),D2
-            MOVE.W (PLRPOSY),D3
-            MOVE.W D0,D4
-            ADD.W #BALRAD,D4
-            MOVE.W (PLRWIDTH),D5
-            
-            MOVE.W D1,D5
-            ADD.W #BALRAD,D5
-            MOVE.W (PLRHEIGH),D7
-            
-            JSR UTLCHCOL
-            CMP #0,D0
-            BNE .DONE2
-           
-            
-            
             
 
 
             
 
             ; STORE POSITION
-.DONE       MOVE.W  D0,(BALPOSX)
-            MOVE.W  D1,(BALPOSY)
+.DONE       MOVE.W  D0,(A0)
+            MOVE.W  D1,2(A0)
 
             MOVEM.W (A7)+,D0-D2
-             RTS
-            
-.DONE2
-            SIMHALT
 
+            RTS
             
 ; ------------------------------------------------------------------------------
 BALPLOT
@@ -770,9 +733,9 @@ BALPLOT
             TRAP    #15
             
             ; DEFINE COORDINATES
-            MOVE.W  (BALPOSX),D1
+            MOVE.W  (A0),D1
             SUB.W   #BALRAD,D1
-            MOVE.W  (BALPOSY),D2
+            MOVE.W  2(A0),D2
             SUB.W   #BALRAD,D2
             MOVE.W  D1,D3
             ADD.W   #2*BALRAD,D3
@@ -787,6 +750,19 @@ BALPLOT
 
             RTS
 
+; -----------------------------------------------------------------------------
+UTLINIT
+; INITIALIZES UTILITY CODE
+; INPUT    - NONE
+; OUTPUT   - NONE
+; MODIFIES - NONE
+; -----------------------------------------------------------------------------
+            MOVEM.L D0-D1,-(A7)
+            MOVE.B  #8,D0
+            TRAP    #15
+            MOVE.B  D1,(UTLRNDIX)
+            MOVEM.L (A7)+,D0-D1
+            RTS
 
 
 
@@ -799,13 +775,13 @@ UTLRAND
 ; OUTPUT   - D0.L RANDOM VALUE (ONLY BYTE)
 ; MODIFIES - NONE (ASIDE OF OUTPUT)
 ; -----------------------------------------------------------------------------
-            MOVE.L  A0,-(A7)
-            LEA     .RANDVEC,A0
+            MOVE.L  A6,-(A7)
+            LEA     .RANDVEC,A6
             CLR.L   D0
             MOVE.B  (UTLRNDIX),D0
-            MOVE.B  (A0,D0.L),D0
+            MOVE.B  (A6,D0.L),D0
             ADDQ.B  #1,(UTLRNDIX)
-            MOVE.L  (A7)+,A0
+            MOVE.L  (A7)+,A6
             RTS
 
 
@@ -841,42 +817,9 @@ UTLRAND
             DC.B    236, 127, 126, 3  , 207, 45 , 193, 2
             DC.B    148, 91 , 35 , 242, 139, 205, 248, 237
             DC.B    116, 51 , 236, 185, 15 , 213, 221, 6
-            
-; -----------------------------------------------------------------------------
-UTLCHCOL
-; CHECKS COLLISION
-; INPUT    - D0.W X0 COORDINATE
-;            D1.W Y0 COORDINATE
-;            D2.W X1 COORDINATE
-;            D3.W Y1 COORDINATE
-;            D4.W WIDTH 0
-;            D5.W WIDTH 1
-;            D6.W HEIGHT 0
-;            D7.W HEIGHT 1
-; OUTPUT   - D0.B=FF - COLLISION, =0 - NO COLLISION
-; MODIFIES - NONE
-; -----------------------------------------------------------------------------
-            MOVEM.W D4-D7,-(A7)
-            ADD.W   D0,D4
-            CMP.W   D2,D4
-            BLE     .NOCOL
-            ADD.W   D2,D5
-            CMP.W   D0,D5
-            BLE     .NOCOL
-            ADD.W   D1,D6
-            CMP.W   D3,D6
-            BLE     .NOCOL
-            ADD.W   D3,D7
-            CMP.W   D1,D7
-            BLE     .NOCOL
-            MOVE.B  #$FF,D0
-            BRA     .END
-.NOCOL      CLR.B   D0
-.END        MOVEM.W (A7)+,D4-D7
-            RTS
-
 
     END    START        ; last line of source
+
 
 
 
