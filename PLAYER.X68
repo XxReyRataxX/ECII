@@ -246,11 +246,11 @@ START:                  ; first instruction of program
             
             JSR     AGLPLOT
             JSR     DIBUJAR
-            LEA BALINIT,A1
-            LEA BALUPD, A2
-            LEA BALPLOT,A3
-            MOVE.W #1,D0
-             JSR      AGLADD
+            ;LEA BALINIT,A1
+            ;LEA BALUPD, A2
+            ;LEA BALPLOT,A3
+            ;MOVE.W #1,D0
+             ;JSR      AGLADD
           
            
            
@@ -771,7 +771,7 @@ BALUPD
             BRA     .CHKVERT
 
             ; BOTTOM COLLISION
-.COLBOT      NEG.W   6(A0)
+.COLBOT     NEG.W   6(A0)
             MOVE.W  #SCRHEIGH-BALRAD,D1
             BRA     .PLRCOLISION
             
@@ -780,15 +780,21 @@ BALUPD
             MOVE.W  #BALRAD,D1
             
 .PLRCOLISION
+           
+            
+            
             MOVE.W (PLRPOSX),D2
             MOVE.W (PLRPOSY),D3
-            MOVE.W D0,D4
-            ADD.W #BALRAD,D4
-            MOVE.W (PLRWIDTH),D5
             
-            MOVE.W D1,D6
-            ADD.W #BALRAD,D6
-            MOVE.W (PLRHEIGH),D7
+            MOVE.W #BALRAD,D4
+          
+            MOVE.W #PLRWIDTH,D5
+            
+            
+           
+            MOVE.W #BALRAD,D6
+            
+            MOVE.W #PLRHEIGH,D7
             
             JSR UTLCHCOL
             CMP #0,D0
@@ -990,5 +996,6 @@ FILLOAD
 
 
     END    START        ; last line of source
+
 
 
