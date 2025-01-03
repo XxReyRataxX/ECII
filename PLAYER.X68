@@ -179,15 +179,18 @@ PLRPOSY     DS.W    1                       ; PLAYER Y POSITION (PIXELS)
 PLRENER     DS.W    1                       ; PLAYER ENERGY
 PLRDMG      DS.B    1                       ; BIT0: UPD DAMAGE, BIT1 PLOT DMG
             DS.W    0
-PLRSPEED    EQU     6    
-            
-
+PLRSPEEDX    EQU     6
+PLRSPEEDY    EQU     20
+    
+GRAVEDAD    EQU    2          
+VGRAVEDAD   DS.W    1     
 ; --- SCREEN RELATED VARIABLES ---------------------------------------------
 SCRWIDTH    EQU     640                     ; SCREEN WIDTH (PIXELS)
 SCRHEIGH    EQU     480                     ; SCREEN HEIGHT (PIXELS)
 SCRIRQ      EQU     1                       ; SCREEN INTERRUPT NUMBER
 TIMER       DC.B    'TIMER: ',0
 VTIMER      DS.W    1
+SEGUNDOS    DS.W    1
 POINT       DS.W    1                          ;PUNTOS CONSEGUIDOS     
 SCRTRAP     EQU     1
 
@@ -223,7 +226,7 @@ START:                  ; first instruction of program
            JSR SCRINIT
            JSR KBDINIT
            ;JSR BALINIT
-           
+           MOVE.W #10,(SEGUNDOS)
            JSR PLRINIT
            JSR MOUSEINIT
            LEA BALINIT,A1
@@ -246,11 +249,16 @@ START:                  ; first instruction of program
             
             JSR     AGLPLOT
             JSR     DIBUJAR
-            ;LEA BALINIT,A1
-            ;LEA BALUPD, A2
-            ;LEA BALPLOT,A3
-            ;MOVE.W #1,D0
-             ;JSR      AGLADD
+            MOVE.W (SEGUNDOS),D4
+            MOVE.W  (VTIMER),D5
+            CMP     D4,D5
+            BNE     .WINT
+            LEA BALINIT,A1
+            LEA BALUPD, A2
+            LEA BALPLOT,A3
+            MOVE.W #1,D0
+            JSR      AGLADD
+            ADD.W   #10,(SEGUNDOS)
           
            
            
@@ -420,6 +428,7 @@ KBDREAD
 PLRINIT            
 ;Personaje 
 ;----------------------------------------------------------------------------            
+            MOVE.W #GRAVEDAD,(VGRAVEDAD)
             MOVE.W  #PLRWIDTH/2,(PLRPOSX)
             MOVE.W  #(SCRHEIGH-PLRHEIGH)/2,(PLRPOSY)
             RTS
@@ -430,42 +439,49 @@ PLRUPD
 ; OUTPUT   - NONE (MODIFIES PLAYER DATA)
 ; MODIFIES - NONE
 ; -----------------------------------------------------------------------------
-            MOVE.W  D1,-(A7)
+            MOVEM.W  D1/A3/D2/D3,-(A7)
             
             
             MOVE.B  (KBDVAL),D1             ; PERFORM MOTION AND CHECK BOUNDS.
-            
-            ADD.W   #2,(PLRPOSY)
+            LEA     VGRAVEDAD,A3
+            MOVE.W   (PLRPOSY),D2
+            ADD.W   (A3),D2
+            MOVE.W  D2,(PLRPOSY)
+           
             ROR.B   #1,D1
             BCC     .CHKUP
-            SUB.W   #PLRSPEED,(PLRPOSX)
+            SUB.W   #PLRSPEEDX,(PLRPOSX)
             TST.W   (PLRPOSX)
             BGE     .CHKUP
             CLR.W   (PLRPOSX)
 .CHKUP      ROR.B   #1,D1
             BCC     .CHKRT
             
-            SUB.W   #PLRSPEED,(PLRPOSY) 
-            
+            SUB.W   #PLRSPEEDY,(PLRPOSY) 
+            ADDQ.W  #1,(VGRAVEDAD)
             TST.W   (PLRPOSY)
             BGE     .CHKRT
             CLR.W   (PLRPOSY)
 .CHKRT      ROR.B   #1,D1
             BCC     .CHKDN
-            ADD.W   #PLRSPEED,(PLRPOSX)
+            ADD.W   #PLRSPEEDX,(PLRPOSX)
             CMP.W   #SCRWIDTH-PLRWIDTH,(PLRPOSX)
             BLE     .CHKDN
             MOVE.W  #SCRWIDTH-PLRWIDTH,(PLRPOSX)
 .CHKDN      ROR.B   #1,D1
             BCC     .MDONE
-            ADD.W   #PLRSPEED,(PLRPOSY)
-            CMP.W   #SCRHEIGH-PLRHEIGH,(PLRPOSY)
-            BLE     .MDONE
-            MOVE.W  #SCRHEIGH-PLRHEIGH,(PLRPOSY)
+            ADD.W   #PLRSPEEDY,(PLRPOSY)
+           
+            BRA     .MDONE
+           
 .MDONE      
+            CMP.W   #SCRHEIGH-PLRHEIGH,(PLRPOSY)
+            BLE     .FINAL
+            MOVE.W  #SCRHEIGH-PLRHEIGH,(PLRPOSY)
+            MOVE.W #GRAVEDAD,(VGRAVEDAD)
             
             
-            MOVE.W  (A7)+,D1
+.FINAL      MOVEM.W  (A7)+,D1/A3/D2/D3
             RTS
 DIBUJAR     ;DIBUJAMOS DESDE 0,0 HASTA A SABER DONDE
             MOVEM.L D0-D6,-(A7)
@@ -758,7 +774,7 @@ BALUPD
             BGT     .COLBOT
             CMP.W   #BALRAD,D1
             BLT     .COLTOP
-            BRA     .PLRCOLISION
+            BRA     .DONE
             
             ; RIGHT SIDE COLLISION
 .COLRGT     NEG.W   4(A0)
@@ -773,12 +789,12 @@ BALUPD
             ; BOTTOM COLLISION
 .COLBOT     NEG.W   6(A0)
             MOVE.W  #SCRHEIGH-BALRAD,D1
-            BRA     .PLRCOLISION
+            BRA     .DONE
             
             ; TOP COLLISION
 .COLTOP      NEG.W   6(A0)
             MOVE.W  #BALRAD,D1
-            
+            BRA .DONE
 .PLRCOLISION
            
             
