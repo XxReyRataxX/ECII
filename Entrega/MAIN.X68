@@ -34,7 +34,8 @@ START:                  ; first instruction of program
            JSR  AGLADD
            
            CLR (SHIELDENA)
-           CLR (LASTSHIELDENA) 
+           CLR (LASTSHIELDENA) ;e
+           CLR (SHIELDINICIO) 
 
            
            CLR.L D2
@@ -89,7 +90,5 @@ START:                  ; first instruction of program
 
 
 
-*~Font name~Courier New~
-*~Font size~10~
-*~Tab type~0~
-*~Tab size~4~
+
+
