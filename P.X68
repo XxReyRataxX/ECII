@@ -13,7 +13,7 @@ PINIT
 ; ------------------------------------------------------------------------------
     MOVE.W  #SCRHEIGH/2, (YCENTER)          ;INICIALIZAR COORDENADAS DE PLATAFORMA
     MOVE.W  #SCRWIDTH/2, (XCENTER)
-    MOVE.L  #1, MOVIMIENTO
+    MOVE.W  #1, MOVIMIENTO
     RTS
 
 PUPDATE
