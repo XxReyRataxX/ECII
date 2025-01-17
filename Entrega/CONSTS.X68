@@ -141,8 +141,8 @@ KBDDOWN     EQU     'S'
 KBDRIGHT    EQU     'D'
 KBDUP       EQU     'W'
 KBDLEFT     EQU     'A'
-KBDSHIELD   EQU     'E'
-KBDESC      EQU     $20                     ; SPACE KEY (ESCUDO)
+KBDSHIELD   EQU     $20
+
 
 
 ; --- BALL RELATED VARIABLES ---------------------------------------------------
@@ -166,6 +166,10 @@ MOUSETRAP   EQU     2
 ;----------SHIELD DECLARATIONS CONSTS
 SHIELDPOSX  EQU 80
 SHIELDPOSY  EQU 0
+SHIELDTIMEEN DS.W 1
+SHIELDCOOLDOWN DS.W 1
+SHIELDINICIO DS.W 1
+
 
 
 ;---------------FILES DECLARATIONS-------------
@@ -179,7 +183,5 @@ FILENAMEPIX   DC.B    'datos_pixeles.bin',0
 
 
 
-*~Font name~Courier New~
-*~Font size~10~
-*~Tab type~0~
-*~Tab size~4~
+
+
