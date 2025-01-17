@@ -131,7 +131,7 @@ PLRHEIGH    EQU     30                      ; PLAYER HEIGHT (PIXELS)
 PLRWIDTH    EQU     30                      ; PLAYER WIDTH (PIXELS)
 PLRHEIGH    EQU     30                      ; PLAYER HEIGHT (PIXELS)
 PLRSPEEDX    EQU     6
-PLRSPEEDY    EQU     23
+PLRSPEEDY    EQU     20
 
 GRAVEDAD    EQU    2                        ;GRAVEDAD CONSTANTE QUE SIMPRE HARA QUE EL PERSONAJE CAIGA         
 ; --- KEYBOARD RELATED CONSTS -----------------------------------------------
@@ -158,9 +158,11 @@ BALPRV2     DS.W    1
 SCRWIDTH    EQU     640                     ; SCREEN WIDTH (PIXELS)
 SCRHEIGH    EQU     480                     ; SCREEN HEIGHT (PIXELS)
 SCRIRQ      EQU     1                       ; SCREEN INTERRUPT NUMBER
-TIMER       DC.B    'TIMER: ',0     
+TIMER       DC.B    'TIMER: ',0
+SHIELD      DC.B    '     SHIELD: ',0
+TELEPORT    DC.B    'TELEPORT: ',0           
 SCRTRAP     EQU     1
-FPS         EQU     50
+
 ;-----------------MOUSE DECLARATIONS CONSTS----------
 MOUSETRAP   EQU     2
 
@@ -183,6 +185,8 @@ PIXEL      DS.B 4096
 ;------------------FILENAMES-----------
 FILENAMEPIX   DC.B    'datos_pixeles.bin',0
             DS.W    0
+
+
 
 
 
