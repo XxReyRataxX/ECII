@@ -60,12 +60,6 @@ DIBUJAR     ;DIBUJAMOS DESDE 0,0 HASTA A SABER DONDE
             MOVEM.L D0-D6,-(A7)
             MOVEM.L A0-A6,-(A7)
             
-            LEA TIMER,A1
-            CLR.L D1
-            CLR.L D0
-            MOVE.W (VTIMER),D1
-            MOVE.B #17,D0
-            TRAP #15
             MOVE.W (PLRPOSX),D5
             MOVE.W (PLRPOSY),D6
             ;CARGAMOS LOS DATOS
@@ -105,7 +99,4 @@ LOOPDIB:
             
 
 
-*~Font name~Courier New~
-*~Font size~10~
-*~Tab type~0~
-*~Tab size~4~
+
