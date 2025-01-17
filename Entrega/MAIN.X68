@@ -40,6 +40,7 @@ START:                  ; first instruction of program
            
            CLR.L D2
 .LOOP       
+            JSR     SCRPLOT
             TRAP   #MOUSETRAP
 	TRAP   #KBDTRAP                ; READ KEYBOARD
 	JSR     AGLUPD
@@ -79,6 +80,7 @@ START:                  ; first instruction of program
            
 
     END    START        ; last line of source
+
 
 
 
