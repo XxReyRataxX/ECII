@@ -29,46 +29,80 @@ SCRINIT
             MOVE.B  #32,D0
             TRAP    #15
            ; ENABLE TIMED INTERRUPT
-           CLR.L D5
-           CLR.L D6
-           CLR.L D4
-           MOVE.W #1000,D5
-           MOVE.W #FPS,D4
             MOVE.B  #32,D0
             MOVE.B  #6,D1
             MOVE.B  #$81,D2
-            DIVU.W  #FPS, D5         ; Divide D0 por D1 (D0 = cociente y resto)
-            MOVE.W D5,D6
-            MOVE.L D6,D3
+            MOVE.L  #20,D3
             TRAP    #15
-            CLR.L D6
-             MOVE.L  D5, D6         ; Copia D0 para extraer el resto
-            ANDI.L  #$00FF, D6     ; Máscara para obtener el resto (20)
-            MULU.W  #1000, D6      ; Multiplicar el resto por 1000
-
-            DIVU.W  D4,D6          ; D4 = parte decimal (2857)
-            MOVE.W  D6,(ERROR)
-
             
             
             CLR.B   (SCRINTCT)              ; PREPARE INTERRUPT FLAG
             CLR.B   (SCRCYCCT) 
             ANDI.W  #$F8FF,SR               ; ENABLE INTS            
-            RTS 
+            RTS
 * Put variables and constants here
 SCRPLOT
             
-	MOVEM.L D0-D1,-(A7)
+	MOVEM.L D0-D7,-(A7)
+	
+	MOVE.L #$00FF0000,D1
+            MOVE.W #81,D0        ; SET FILL COLOR
+            TRAP #15
+            
 	LEA TIMER,A1
 	CLR.L D1
             CLR.L D0
             MOVE.W (VTIMER),D1
             MOVE.B #17,D0
+            TRAP #15 ;TIMER
+            
+
+            
+            MOVE.L #$00FFFFFF,D1
+            MOVE.W #80,D0        ; SET PEN COLOR
             TRAP #15
+            
+            LEA SHIELD,A1
+	CLR.L D1
+            MOVE.B #17,D0
+            TRAP #15
+            
+            MOVE.W (SHIELDENA),D2
+           
+            
+            CMP.W #1,D2            
+            BEQ .ROJO
+            
+           
+            
+       
+            
+           
+            
+            MOVE.L #$0000FF00,D1
+            MOVE.W #81,D0        ; SET FILL COLOR
+            TRAP #15
+            ;Dibujamos cuadrado
+            
+.CHECKPOINT
+            MOVE.W #160,D1
+            MOVE.W #0,D2
+            MOVE.W #175,D3
+            MOVE.W #15,D4
+            MOVE.W #87,D0
+            TRAP #15
+            
 			
-	MOVEM.L (A7)+,D0-D1
+	MOVEM.L (A7)+,D0-D7
             RTS
 
+
+.ROJO
+
+            MOVE.L #$000000FF,D1
+            MOVE.W #81,D0        ; SET FILL COLOR
+            TRAP #15
+            BRA .CHECKPOINT
 KBDINIT     
     ; INITIALIZES THE SYSTEM VARIABLES KBDSYS AND KBDVAL
 ; INPUT    - NONE
@@ -145,7 +179,7 @@ KBDREAD
 
             CMP #0,D3
             BGE .ENABLE            
-            CLR.W (SHIELDENA)
+            
             BRA .RETURN
 .DIB2
              
@@ -334,6 +368,7 @@ FILLOAD
             TRAP    #15
             MOVEM.L (A7)+,D0-D2/A1          ; RESTORE REGISTERS
             RTS
+
 
 
 
