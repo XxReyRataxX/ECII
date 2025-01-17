@@ -62,7 +62,7 @@ KBDREAD
 ; OUTPUT   - (KBDVAL) AND (KBDEDGE)
 ; MODIFIES - NONE
 ; -----------------------------------------------------------------------------
-            MOVEM.L D0-D3,-(A7)
+            MOVEM.L D0-D7,-(A7)
             MOVE.B  #19,D0
             MOVE.L  #KBDDOWN<<24+KBDRIGHT<<16+KBDUP<<8+KBDLEFT,D1
             TRAP    #15
@@ -77,11 +77,12 @@ KBDREAD
             MOVE.B  #19,D0
             MOVE.L  #KBDSHIELD<<24,D1
             TRAP #15
+            BTST #24,D1
+
             
-            BTST.L #24,D1
             BNE .SHIELDPLOT
 .RETURN
-            MOVEM.L (A7)+,D0-D3
+            MOVEM.L (A7)+,D0-D7
             RTE
 
 .STORE      MOVE.W  #3,D3                   ; TRANSLATES THE 8-BIT ENCODING
@@ -97,14 +98,49 @@ KBDREAD
             
 
 .SHIELDPLOT
-            CMP #0,(SHIELDENA)
-            BGT .CHECKTIMER2
-.DIB           
-            ;si enable es uno, actualizamos los ultimos valores del last enable
-            MOVE.W (VTIMER),(LASTSHIELDENA)
+
+            MOVE.W (SHIELDINICIO),D1
+            CMP #0,(SHIELDINICIO)
+            BEQ .DIB2 ;para obtener datos iniciales
             
-                        
-           
+             CMP #0,(SHIELDENA) 
+            BEQ  .CHECKTIMER2
+            
+            ;SE ACABÓ LA ACTIVACIÓN DEL ESCUDO(4S)
+            ;ESTÁ ACTIVADO EL COOLDOOWN??????
+            
+.CHECKLIST           
+             MOVE.W (VTIMER),D3
+            MOVE.W (SHIELDCOOLDOWN),D4
+            
+            SUB.W (SHIELDCOOLDOWN),D3
+
+            CMP #0,D3
+            BGE .ENABLE            
+            CLR.W (SHIELDENA)
+            BRA .RETURN
+.DIB2
+             
+          
+            MOVE.W (VTIMER),D7
+            ADD.W #4,D7
+            MOVE.W D7,(SHIELDTIMEEN)
+            ADD.W #4,D7
+            MOVE.W D7,(SHIELDCOOLDOWN)
+            
+            MOVE.W #1,(SHIELDINICIO)
+            
+            CLR.W D7
+            
+            
+            
+
+
+
+.DIB
+
+                              
+            CLR.L D1
             MOVE.L #$00FF0000,D1
             MOVE.W #80,D0        ; SET PEN COLOR
             TRAP #15
@@ -132,17 +168,31 @@ KBDREAD
             BRA .RETURN
 
 .CHECKTIMER2:
+            MOVE.W (SHIELDTIMEEN),D4
             MOVE.W (VTIMER),D3
-            SUB.W (LASTSHIELDENA),D3
+            
+            SUB.W D3,D4
            
-
-            CMP #4,D3
-            BNE .RETURN
+            CMP  #0,D4
+            BLE .FIN1
             
+           
+            
+            
+            BRA .DIB
+            
+
+.FIN1:
+            
+            MOVE.W #1,(SHIELDENA)
             BRA .RETURN
-            
 
-            
+
+.ENABLE:
+            CLR.W (SHIELDINICIO)
+            CLR.W (SHIELDENA)
+            BRA .RETURN
+                                  
            
 MOUSEINIT     
     ; INITIALIZES THE SYSTEM VARIABLES KBDSYS AND KBDVAL
@@ -198,8 +248,8 @@ CHECKTIMER:
             MOVE.W (VTIMER),D3
             SUB.W (LASTENA),D3
             
-            CMP #2,D3
-            BNE NOT_PRESSED
+            CMP #6,D3
+            BLT NOT_PRESSED
             CLR.W (ENATP)
             
          
@@ -260,7 +310,5 @@ FILLOAD
 
 
 
-*~Font name~Courier New~
-*~Font size~10~
-*~Tab type~0~
-*~Tab size~4~
+
+
