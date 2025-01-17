@@ -29,11 +29,26 @@ SCRINIT
             MOVE.B  #32,D0
             TRAP    #15
            ; ENABLE TIMED INTERRUPT
+           CLR.L D5
+           CLR.L D6
+           CLR.L D4
+           MOVE.W #1000,D5
+           MOVE.W #FPS,D4
             MOVE.B  #32,D0
             MOVE.B  #6,D1
             MOVE.B  #$81,D2
-            MOVE.L  #20,D3
+            DIVU.W  #FPS, D5         ; Divide D0 por D1 (D0 = cociente y resto)
+            MOVE.W D5,D6
+            MOVE.L D6,D3
             TRAP    #15
+            CLR.L D6
+             MOVE.L  D5, D6         ; Copia D0 para extraer el resto
+            ANDI.L  #$00FF, D6     ; Máscara para obtener el resto (20)
+            MULU.W  #1000, D6      ; Multiplicar el resto por 1000
+
+            DIVU.W  D4,D6          ; D4 = parte decimal (2857)
+            MOVE.W  D6,(ERROR)
+
             
             
             CLR.B   (SCRINTCT)              ; PREPARE INTERRUPT FLAG
