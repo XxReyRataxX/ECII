@@ -41,6 +41,18 @@ SCRINIT
             ANDI.W  #$F8FF,SR               ; ENABLE INTS            
             RTS 
 * Put variables and constants here
+SCRPLOT
+            
+	MOVEM.L D0-D1,-(A7)
+	LEA TIMER,A1
+	CLR.L D1
+            CLR.L D0
+            MOVE.W (VTIMER),D1
+            MOVE.B #17,D0
+            TRAP #15
+			
+	MOVEM.L (A7)+,D0-D1
+            RTS
 
 KBDINIT     
     ; INITIALIZES THE SYSTEM VARIABLES KBDSYS AND KBDVAL
@@ -307,6 +319,7 @@ FILLOAD
             TRAP    #15
             MOVEM.L (A7)+,D0-D2/A1          ; RESTORE REGISTERS
             RTS
+
 
 
 
