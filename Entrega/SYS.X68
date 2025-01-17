@@ -50,6 +50,7 @@ KBDINIT
 ; -----------------------------------------------------------------------------
             CLR.B   (KBDVAL)                    ; INIT VARS
             CLR.B   (KBDEDGE)
+            
             MOVE.L  #KBDREAD, ($80+KBDTRAP*4)    ; INSTALL
             RTS
 
@@ -141,7 +142,7 @@ KBDREAD
 
                               
             CLR.L D1
-            MOVE.L #$00FF0000,D1
+            MOVE.L #$0000FF00,D1
             MOVE.W #80,D0        ; SET PEN COLOR
             TRAP #15
             MOVE.W (PLRPOSX),D5
@@ -150,7 +151,7 @@ KBDREAD
             ADD.W #15,D6
             
          
-           SUB.W #30,D5
+            SUB.W #30,D5
             MOVE.W D5,D1
   
             ADD.W #60,D5
