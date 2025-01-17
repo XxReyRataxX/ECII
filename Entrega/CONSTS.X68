@@ -149,7 +149,9 @@ KBDSHIELD   EQU     $20
 
 
 BALVEL      EQU     3
-BALRAD     EQU     20
+BALRAD      EQU     20
+BALPRV1     DS.W    1
+BALPRV2     DS.W    1
 
     
 ; --- SCREEN RELATED CONSTS ---------------------------------------------
@@ -169,6 +171,7 @@ SHIELDPOSY  EQU 0
 SHIELDTIMEEN DS.W 1
 SHIELDCOOLDOWN DS.W 1
 SHIELDINICIO DS.W 1
+SHIELDATA  EQU  45
 
 
 
