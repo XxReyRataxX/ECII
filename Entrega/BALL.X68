@@ -59,7 +59,7 @@ BALUPD
 ; MODIFIES : NONE
 ; ------------------------------------------------------------------------------
 
-            MOVEM.W D0-D2,-(A7)
+            MOVEM.W D0-D7,-(A7)
             
             ; UPDATE BALL COORDINATES
             MOVE.W  (A0),D0
@@ -80,7 +80,7 @@ BALUPD
             BGT     .COLBOT
             CMP.W   #BALRAD,D1
             BLT     .COLTOP
-            BRA     .PLRCOLISION
+            BRA     .SHIELDCOLISION
             
             ; RIGHT SIDE COLLISION
 .COLRGT     NEG.W   4(A0)
@@ -95,17 +95,71 @@ BALUPD
             ; BOTTOM COLLISION
 .COLBOT     NEG.W   6(A0)
             MOVE.W  #SCRHEIGH-BALRAD,D1
-            BRA     .PLRCOLISION
+            BRA     .SHIELDCOLISION
             
             ; TOP COLLISION
 .COLTOP      NEG.W   6(A0)
             MOVE.W  #BALRAD,D1
-            BRA .PLRCOLISION
+            BRA .SHIELDCOLISION
             
-.PLRCOLISION
-            ; STORE BALL COORDINATES 
+.SHIELDCOLISION
+            
+            
             MOVE.W  D0,(A0)
             MOVE.W  D1,2(A0)
+            
+            SUB.W   #BALRAD,D0
+            SUB.W   #BALRAD,D1
+            MOVE.W D0,(BALPRV1)
+            MOVE.W D1,(BALPRV2) ;guardar por si después miramos la del player
+            
+            ;MIRAMOS SI EL ESCUDO ESTÁ ACTIVO, para eso, dos comprobaciones
+            ;1 (está el espacio presionado)?
+            ;2(estamos en el tiempo disponible para la activación del mismo)?
+            MOVE.B  #19,D0
+            MOVE.L  #KBDSHIELD<<24,D1
+            TRAP #15
+            BTST #24,D1
+            
+            BEQ .PLRCOLISION ;No estamos presionando espacio, miramos si
+            ;la bola toca al jugador
+            
+            ;¡HEMOS PRESIONADO ESPACIO!
+            MOVE.W (SHIELDTIMEEN),D6
+            MOVE.W (VTIMER),D7
+            CMP D7,D6
+            BLE .PLRCOLISION ;No estamos en el tiempo indicado
+            
+            CLR.L D6
+            CLR.L D7           
+             
+            MOVE.W (BALPRV1),D0
+            MOVE.W (BALPRV2),D1
+            MOVE.W (PLRPOSX),D2
+            SUB.W #15,D2
+            
+            MOVE.W (PLRPOSY),D3
+            SUB.W #15,D3
+       
+            
+            MOVE.W #BALRAD*2,D4
+            MOVE.W #SHIELDATA,D5
+            
+            MOVE.W #BALRAD*2,D6
+            MOVE.W #SHIELDATA,D7
+            
+            JSR     UTLCHCOL
+            TST.B   D0
+            BEQ     .DONE
+            JSR     AGLKILL
+            BRA .DONE
+            
+            
+            
+
+
+.PLRCOLISION
+           
             
             ; CHECKS COLLISION
 ; INPUT    - D0.W X0 COORDINATE
@@ -118,8 +172,8 @@ BALUPD
 ;            D7.W HEIGHT 1
 ; OUTPUT   - D0.B=FF - COLLISION, =0 - NO COLLISION
             
-            SUB.W   #BALRAD,D0
-            SUB.W   #BALRAD,D1
+            MOVE.W   (BALPRV1),D0
+            MOVE.W   (BALPRV2),D1
             
             MOVE.W (PLRPOSX),D2
             MOVE.W (PLRPOSY),D3
@@ -145,7 +199,7 @@ BALUPD
 
             
 .DONE
-            MOVEM.W (A7)+,D0-D2
+            MOVEM.W (A7)+,D0-D7
             RTS
 
             
@@ -193,7 +247,3 @@ BALPLOT
 
 
 
-*~Font name~Courier New~
-*~Font size~10~
-*~Tab type~0~
-*~Tab size~4~
