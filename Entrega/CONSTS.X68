@@ -131,7 +131,7 @@ PLRHEIGH    EQU     30                      ; PLAYER HEIGHT (PIXELS)
 PLRWIDTH    EQU     30                      ; PLAYER WIDTH (PIXELS)
 PLRHEIGH    EQU     30                      ; PLAYER HEIGHT (PIXELS)
 PLRSPEEDX    EQU     6
-PLRSPEEDY    EQU     20
+PLRSPEEDY    EQU     23
 
 GRAVEDAD    EQU    2                        ;GRAVEDAD CONSTANTE QUE SIMPRE HARA QUE EL PERSONAJE CAIGA         
 ; --- KEYBOARD RELATED CONSTS -----------------------------------------------
@@ -160,7 +160,7 @@ SCRHEIGH    EQU     480                     ; SCREEN HEIGHT (PIXELS)
 SCRIRQ      EQU     1                       ; SCREEN INTERRUPT NUMBER
 TIMER       DC.B    'TIMER: ',0     
 SCRTRAP     EQU     1
-
+FPS         EQU     50
 ;-----------------MOUSE DECLARATIONS CONSTS----------
 MOUSETRAP   EQU     2
 
