@@ -23,9 +23,9 @@ PUPDATE
 ; MODIFIES : XCENTER
 ; ------------------------------------------------------------------------------
     
-    MOVEM.W D0-D1,-(A7)
+    MOVEM.W D0-D5,-(A7)
 
-    MOVE.W (XCENTER), D5
+    MOVE.W (XCENTER),D5
     ADD.W    (MOVIMIENTO),D5
     ; COMPARA SI CHOCA PARED :( CMP B,A
     ; SI A<B PUES NADA A DIBUJAR EN AUX
@@ -37,7 +37,7 @@ PUPDATE
 .UPAUX
     MOVE.W  D5, (XCENTER)
     
-    MOVEM.W (A7)+,D0-D1
+    MOVEM.W (A7)+,D0-D5
 
     RTS
 
@@ -76,8 +76,4 @@ PPLOT
             
             MOVEM.L (A7)+,D0-D7   
             
-            RTE  
-*~Font name~Fixedsys~
-*~Font size~9~
-*~Tab type~1~
-*~Tab size~4~
+            RTS 
