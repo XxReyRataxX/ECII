@@ -160,9 +160,9 @@ SCRHEIGH    EQU     480                     ; SCREEN HEIGHT (PIXELS)
 SCRIRQ      EQU     1                       ; SCREEN INTERRUPT NUMBER
 TIMER       DC.B    'TIMER: ',0
 SHIELD      DC.B    '     SHIELD: ',0
-TELEPORT    DC.B    'TELEPORT: ',0           
+TELEPORT    DC.B    '  TELEPORT: ',0           
 SCRTRAP     EQU     1
-TXTFPS      DC.B    'FPS ACTUAL: ' ,0
+TXTFPS      DC.B    '  FPS ACTUAL: ' ,0
             DS.W    1       
 SCRTRAP     EQU     1
 FPS         EQU     50
