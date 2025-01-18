@@ -162,7 +162,10 @@ TIMER       DC.B    'TIMER: ',0
 SHIELD      DC.B    '     SHIELD: ',0
 TELEPORT    DC.B    'TELEPORT: ',0           
 SCRTRAP     EQU     1
-
+TXTFPS      DC.B    'FPS ACTUAL: ' ,0
+            DS.W    1       
+SCRTRAP     EQU     1
+FPS         EQU     50
 ;-----------------MOUSE DECLARATIONS CONSTS----------
 MOUSETRAP   EQU     2
 
