@@ -2,9 +2,10 @@
 
 SCRINTCT    DS.B    1                       ; INTERRUPT COUNTER
 SCRCYCCT    DS.B    1                       ; CYCLE COUNTER
-            DS.W    0
+            DS.W    1
 ERROR       DS.W    1                       ;ERROR DE LOS FPS
-FPSAC       DS.W    1
+FPSAC       DS.L    1
+FPSIN       DS.L    1
 ; --- GAME STATE RELATED VARIABLES --------------------------------------------
 
 STACUR      DS.W    1                       ; CURRENT GAME STATE
