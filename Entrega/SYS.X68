@@ -70,7 +70,12 @@ SCRPLOT
             MOVE.W (VTIMER),D1
             MOVE.B #17,D0
             TRAP #15 ;TIMER
+            LEA TXTFPS,A1
+            CLR.L D1
             
+            MOVE.W #FPS,D1
+            MOVE.B #17,D0
+            TRAP #15
 
             
             MOVE.L #$00FFFFFF,D1
