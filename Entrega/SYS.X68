@@ -78,13 +78,15 @@ SCRPLOT
             TRAP #15
             
             LEA SHIELD,A1
-	CLR.L D1
-            MOVE.B #17,D0
+	
+            MOVE.B #14,D0
             TRAP #15
             
             MOVE.W (SHIELDENA),D2
-           
             
+            ; SI D3 = 0 significa shield
+            ; SI D3 = 1 significa TP
+            MOVE.L #0,D3
             CMP.W #1,D2            
             BEQ .ROJO
             
@@ -100,15 +102,46 @@ SCRPLOT
             ;Dibujamos cuadrado
             
 .CHECKPOINT
-            MOVE.W #160,D1
-            MOVE.W #0,D2
-            MOVE.W #175,D3
-            MOVE.W #15,D4
+            MOVE.W #65,D1
+            MOVE.W #15,D2
+            MOVE.W #80,D3
+            MOVE.W #30,D4
             MOVE.W #87,D0
             TRAP #15
             
             
-            ;DIBUJAMOS EL TEXTO de FPS
+            MOVE.L #$00FF0000,D1
+            MOVE.W #81,D0        ; SET FILL COLOR
+            TRAP #15
+            
+            
+            ;HAREMOS PRINT DEL TELEPORT
+            LEA TELEPORT,A1
+	
+            MOVE.B #14,D0
+            TRAP #15
+            
+            CLR.L D2
+            MOVE.W (ENATP),D2
+            
+            MOVE.L #$0000FF00,D1
+            MOVE.W #81,D0        ; SET FILL COLOR
+            TRAP #15
+            
+            MOVE.L #1,D3
+            CMP.W #0,D2
+            BNE .ROJO
+            
+.CHECKPOINT2
+            MOVE.W #75,D1
+            MOVE.W #30,D2
+            MOVE.W #90,D3
+            MOVE.W #45,D4
+            MOVE.W #87,D0
+            TRAP #15
+           
+            ;TENEMOS EL CUADRADO DIBUJADO
+            
             MOVE.L #$00FF0000,D1
             MOVE.W #81,D0        ; SET FILL COLOR
             TRAP #15
@@ -119,6 +152,8 @@ SCRPLOT
             MOVE.W #FPS,D1
             MOVE.B #17,D0
             TRAP #15
+            
+            
 
 			
 	MOVEM.L (A7)+,D0-D7
@@ -130,7 +165,10 @@ SCRPLOT
             MOVE.L #$000000FF,D1
             MOVE.W #81,D0        ; SET FILL COLOR
             TRAP #15
-            BRA .CHECKPOINT
+            
+            CMP #0,D3
+            BEQ .CHECKPOINT
+            BRA .CHECKPOINT2
 KBDINIT     
     ; INITIALIZES THE SYSTEM VARIABLES KBDSYS AND KBDVAL
 ; INPUT    - NONE
