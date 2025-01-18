@@ -23,7 +23,7 @@ START:                  ; first instruction of program
            JSR SCRINIT
            JSR KBDINIT
            ;JSR BALINIT
-           MOVE.W #10,(SEGUNDOS)
+           MOVE.W #5,(SEGUNDOS)
            JSR PLRINIT
            JSR MOUSEINIT
            LEA BALINIT,A1
@@ -57,7 +57,7 @@ START:                  ; first instruction of program
             LEA BALPLOT,A3
             MOVE.W #1,D0
             JSR      AGLADD
-            ADD.W   #10,(SEGUNDOS)
+            ADD.W   #5,(SEGUNDOS)
           
            
            
@@ -67,8 +67,8 @@ START:                  ; first instruction of program
             CLR.B   (SCRINTCT)
             CLR.L D6
             MOVE.B (SCRCYCCT),D6
-            CMP #50,D6
-            BNE .YA
+            CMP #FPS,D6
+            BLT .YA
             ADDQ.W #1,(VTIMER)
             CLR.B   (SCRCYCCT)
 .YA           
