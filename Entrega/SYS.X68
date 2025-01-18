@@ -43,7 +43,7 @@ SCRINIT
             TRAP    #15
             CLR.L D6
              MOVE.L  D5, D6         ; Copia D0 para extraer el resto
-            ANDI.L  #$00FF, D6     ; Máscara para obtener el resto (20)
+            ANDI.L  #$00FF, D6     ; MÃ¡scara para obtener el resto (20)
             MULU.W  #1000, D6      ; Multiplicar el resto por 1000
 
             DIVU.W  D4,D6          ; D4 = parte decimal (2857)
@@ -70,12 +70,7 @@ SCRPLOT
             MOVE.W (VTIMER),D1
             MOVE.B #17,D0
             TRAP #15 ;TIMER
-            LEA TXTFPS,A1
-            CLR.L D1
             
-            MOVE.W #FPS,D1
-            MOVE.B #17,D0
-            TRAP #15
 
             
             MOVE.L #$00FFFFFF,D1
@@ -112,6 +107,19 @@ SCRPLOT
             MOVE.W #87,D0
             TRAP #15
             
+            
+            ;DIBUJAMOS EL TEXTO de FPS
+            MOVE.L #$00FF0000,D1
+            MOVE.W #81,D0        ; SET FILL COLOR
+            TRAP #15
+            
+            LEA TXTFPS,A1
+            CLR.L D1
+            
+            MOVE.W #FPS,D1
+            MOVE.B #17,D0
+            TRAP #15
+
 			
 	MOVEM.L (A7)+,D0-D7
             RTS
@@ -188,8 +196,8 @@ KBDREAD
              CMP #0,(SHIELDENA) 
             BEQ  .CHECKTIMER2
             
-            ;SE ACABÓ LA ACTIVACIÓN DEL ESCUDO(4S)
-            ;ESTÁ ACTIVADO EL COOLDOOWN??????
+            ;SE ACABÃ“ LA ACTIVACIÃ“N DEL ESCUDO(4S)
+            ;ESTÃ ACTIVADO EL COOLDOOWN??????
             
 .CHECKLIST           
              MOVE.W (VTIMER),D3
