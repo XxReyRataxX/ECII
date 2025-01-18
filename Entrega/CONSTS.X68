@@ -158,11 +158,11 @@ BALPRV2     DS.W    1
 SCRWIDTH    EQU     640                     ; SCREEN WIDTH (PIXELS)
 SCRHEIGH    EQU     480                     ; SCREEN HEIGHT (PIXELS)
 SCRIRQ      EQU     1                       ; SCREEN INTERRUPT NUMBER
-TIMER       DC.B    'TIMER: ',0
-SHIELD      DC.B    '     SHIELD: ',0
-TELEPORT    DC.B    '  TELEPORT: ',0           
+TIMER    DC.B 'TIMER: ',0   ; "TIMER: " seguido de CR y LF, terminado en NULL
+SHIELD      DC.B    $0D, $0A,'SHIELD: ',0
+TELEPORT    DC.B    $0D, $0A,'TELEPORT: ',0           
 SCRTRAP     EQU     1
-TXTFPS      DC.B    '  FPS ACTUAL: ' ,0
+TXTFPS      DC.B    $0D, $0A,'FPS ACTUAL: ' ,0
             DS.W    1       
 SCRTRAP     EQU     1
 FPS         EQU     50
