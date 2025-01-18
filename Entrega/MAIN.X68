@@ -16,13 +16,14 @@
             INCLUDE "DMMCODE.X68"
             INCLUDE "UTLCODE.X68"
             INCLUDE "AGL.X68"
+            INCLUDE "PLATAFORM.X68"
 START:                  ; first instruction of program
            CLR.L VTIMER
            JSR DMMINIT
            JSR UTLINIT
            JSR SCRINIT
            JSR KBDINIT
-           ;JSR BALINIT
+           JSR PINIT
            MOVE.W #5,(SEGUNDOS)
            JSR PLRINIT
            JSR MOUSEINIT
@@ -44,10 +45,13 @@ START:                  ; first instruction of program
             TRAP   #MOUSETRAP
 	TRAP   #KBDTRAP                ; READ KEYBOARD
 	JSR     AGLUPD
+	JSR     PUPDATE
             JSR     PLRUPD
+            
             
             JSR     AGLPLOT
             JSR     DIBUJAR
+            JSR     PPLOT
             MOVE.W (SEGUNDOS),D4
             MOVE.W  (VTIMER),D5
             CMP     D4,D5
