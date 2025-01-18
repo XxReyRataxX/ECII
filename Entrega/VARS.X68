@@ -42,9 +42,10 @@ MOUSEPOSY   DS.W    1
 SHIELDENA   DS.W 1
 LASTSHIELDENA DS.W 1
 
+;---------------PLATFORM DECLARATION VARS
+XCENTER     DS.W 1
+YCENTER     DS.W 1
+MOVIMIENTO  DS.W 1
 
 
-*~Font name~Courier New~
-*~Font size~10~
-*~Tab type~0~
-*~Tab size~4~
+
