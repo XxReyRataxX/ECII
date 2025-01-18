@@ -187,6 +187,12 @@ PIXEL      DS.B 4096
 
 ;------------------FILENAMES-----------
 FILENAMEPIX   DC.B    'datos_pixeles.bin',0
+
+
+;------------PLATFORM-----------
+CALTURA     EQU 32
+CANCHURA    EQU 32
+
             DS.W    0
 
 
