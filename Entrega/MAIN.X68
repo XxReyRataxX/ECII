@@ -40,7 +40,20 @@ START:                  ; first instruction of program
 
            
            CLR.L D2
-.LOOP       
+MOVE.W #8,D0
+	TRAP #15
+	MOVE.L D1,(FPSIN)
+            CLR.L D1
+            CLR.L D0
+.LOOP       CMP #0,(ENFPS)
+            BEQ     .TT
+            MOVE.W #8,D0
+	TRAP #15
+	MOVE.L D1,(FPSIN)
+            CLR.L D1
+            CLR.L D0
+            MOVE.W  #0,(ENFPS)
+.TT
             JSR     SCRPLOT
             TRAP   #MOUSETRAP
 	TRAP   #KBDTRAP                ; READ KEYBOARD
@@ -73,6 +86,8 @@ START:                  ; first instruction of program
             MOVE.B (SCRCYCCT),D6
             CMP #FPS,D6
             BLT .YA
+            JSR FPSUPD
+            MOVE.W  #1,(ENFPS)
             ADDQ.W #1,(VTIMER)
             CLR.B   (SCRCYCCT)
 .YA           
