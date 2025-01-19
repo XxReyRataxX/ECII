@@ -440,13 +440,20 @@ SCRUPD
 ; OUTPUT   - NONE
 ; MODIFIES - NONE
 ; -----------------------------------------------------------------------------
-            MOVEM.W D0-D1,-(A7)
+            MOVEM.W D0-D6/A1,-(A7)
+            LEA TXTFPS,A1
+            CLR.L D1
+            MOVE.W (FPSAN),D1
+            MOVE.B #17,D0
+            TRAP #15
+            CLR.L D0
+            CLR.L D1
             MOVE.B  #94,D0                  ; UPDATE DOUBLE BUFFER
             TRAP    #15
             MOVE.W  #$FF00,D1               ; CLEAR HIDDEN BUFFER
             MOVE.B  #11,D0
             TRAP    #15
-            MOVEM.W (A7)+,D0-D1
+            MOVEM.W (A7)+,D0-D6/A1
             RTE
 FILLOAD
 ; LOADS AN FILE FROM DISK TO MEMORY
