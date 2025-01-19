@@ -441,7 +441,7 @@ SCRUPD
 ; MODIFIES - NONE
 ; -----------------------------------------------------------------------------
             MOVEM.W D0-D6/A1,-(A7)
-            LEA TXTFPS,A1
+            LEA TXT2FPS,A1
             CLR.L D1
             MOVE.W (FPSAN),D1
             MOVE.B #17,D0
