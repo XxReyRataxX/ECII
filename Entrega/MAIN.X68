@@ -23,7 +23,7 @@ START:                  ; first instruction of program
            JSR UTLINIT
            JSR SCRINIT
            JSR KBDINIT
-           JSR PINIT
+           ;JSR PINIT
            MOVE.W #5,(SEGUNDOS)
            JSR PLRINIT
            JSR MOUSEINIT
@@ -34,12 +34,18 @@ START:                  ; first instruction of program
            MOVE.W #1,D0
            JSR  AGLADD
            
+           LEA PINIT,A1
+           LEA PUPDATE, A2
+           LEA PPLOT,A3
+           MOVE.W #2,D0
+           JSR      AGLADD
+           
            CLR (SHIELDENA)
            CLR (LASTSHIELDENA) ;e
            CLR (SHIELDINICIO) 
 
            
-           CLR.L D2
+            CLR.L D2
             MOVE.W #8,D0
 	TRAP #15
 	MOVE.L D1,(FPSIN)
@@ -57,14 +63,14 @@ START:                  ; first instruction of program
             JSR     SCRPLOT
             TRAP   #MOUSETRAP
 	TRAP   #KBDTRAP                ; READ KEYBOARD
-	JSR     AGLUPD
-	JSR     PUPDATE
+	
+	;JSR     PUPDATE
             JSR     PLRUPD
-            
+            JSR     AGLUPD
             
             JSR     AGLPLOT
             JSR     DIBUJAR
-            JSR     PPLOT
+            ;JSR     PPLOT
             MOVE.W (SEGUNDOS),D4
             MOVE.W  (VTIMER),D5
             CMP     D4,D5
@@ -74,6 +80,11 @@ START:                  ; first instruction of program
             LEA BALPLOT,A3
             MOVE.W #1,D0
             JSR      AGLADD
+            
+
+            
+            
+            
             ADD.W   #5,(SEGUNDOS)
           
            
@@ -104,6 +115,8 @@ START:                  ; first instruction of program
            
 
     END    START        ; last line of source
+
+
 
 
 
