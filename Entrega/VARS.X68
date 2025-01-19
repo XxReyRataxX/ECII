@@ -6,6 +6,8 @@ SCRCYCCT    DS.B    1                       ; CYCLE COUNTER
 ERROR       DS.W    1                       ;ERROR DE LOS FPS
 FPSAC       DS.L    1
 FPSIN       DS.L    1
+ENFPS       DS.W    1
+FPSAN       DS.W    1
 ; --- GAME STATE RELATED VARIABLES --------------------------------------------
 
 STACUR      DS.W    1                       ; CURRENT GAME STATE
