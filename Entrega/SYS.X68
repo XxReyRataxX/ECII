@@ -57,6 +57,50 @@ SCRINIT
             CLR.B   (SCRCYCCT) 
             ANDI.W  #$F8FF,SR               ; ENABLE INTS            
             RTS
+FPSUPD
+            MOVEM.W D0-D6,-(A7)
+            MOVE.L (FPSIN),D3
+            MOVE.L  (FPSAC),D4
+            SUB.L   D3,D4
+           
+            CMP.W   #0,D4
+            BEQ     .FF
+            CMP.W   #0,D4
+            BGE     .ND
+            NEG.L D4
+.ND
+
+            MULS    #10, D4
+            CLR.L D6
+            CLR.L D5
+            MOVE.B  (SCRCYCCT),D6
+.AA         SUB.L   D6,D4
+            CMP.L   #0,D4
+            BLT     .TN
+            ADDQ.W  #1,D5
+            BRA .AA
+.TN         CLR.L D3
+            CLR.L D4
+            CMP.W   #0,D5
+            BEQ     .FF
+            MOVE.L  #1000,D3
+.CA         SUB.L     D5,D3
+            CMP.L   #0,D3
+            BLT     .SN
+            ADDQ.W  #1,D4
+            BRA .CA
+.SN         
+                
+            
+            MOVE.W  D4,(FPSAN)
+       
+     
+            BRA .TRAP
+.FF         MOVE.W #100,(FPSAN)
+.TRAP       
+
+            MOVEM.W (A7)+,D0-D6
+            RTS 
 * Put variables and constants here
 SCRPLOT
             
