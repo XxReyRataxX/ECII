@@ -162,8 +162,10 @@ TIMER    DC.B 'TIMER: ',0   ; "TIMER: " seguido de CR y LF, terminado en NULL
 SHIELD      DC.B    $0D, $0A,'SHIELD: ',0
 TELEPORT    DC.B    $0D, $0A,'TELEPORT: ',0           
 SCRTRAP     EQU     1
-TXTFPS      DC.B    $0D, $0A,'FPS ACTUAL: ' ,0
-            DS.W    1       
+TXTFPS      DC.B    $0D, $0A,'GOAL: ' ,0
+            DS.W    1
+TXT2FPS     DC.B    'ACTUAL: ' ,0
+            DS.W    1
 SCRTRAP     EQU     1
 FPS         EQU     50
 ;-----------------MOUSE DECLARATIONS CONSTS----------
