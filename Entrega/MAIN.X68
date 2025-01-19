@@ -40,7 +40,7 @@ START:                  ; first instruction of program
 
            
            CLR.L D2
-MOVE.W #8,D0
+            MOVE.W #8,D0
 	TRAP #15
 	MOVE.L D1,(FPSIN)
             CLR.L D1
@@ -82,6 +82,11 @@ MOVE.W #8,D0
 .WINT       TST.B   (SCRINTCT)              ; WAIT FOR INTERRUPT
             BEQ     .WINT
             CLR.B   (SCRINTCT)
+            MOVE.W #8,D0
+	TRAP #15
+	MOVE.L D1,(FPSAC)
+            CLR.L D1
+            CLR.L D0
             CLR.L D6
             MOVE.B (SCRCYCCT),D6
             CMP #FPS,D6
