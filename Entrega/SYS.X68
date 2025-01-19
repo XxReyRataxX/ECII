@@ -32,6 +32,8 @@ SCRINIT
            CLR.L D5
            CLR.L D6
            CLR.L D4
+           MOVE.W   #1,(ENFPS)
+            MOVE.W   #0,(FPSAN)
            MOVE.W #1000,D5
            MOVE.W #FPS,D4
             MOVE.B  #32,D0
