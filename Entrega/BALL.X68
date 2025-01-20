@@ -111,11 +111,11 @@ BALUPD
             SUB.W   #BALRAD,D0
             SUB.W   #BALRAD,D1
             MOVE.W D0,(BALPRV1)
-            MOVE.W D1,(BALPRV2) ;guardar por si después miramos la del player
+            MOVE.W D1,(BALPRV2) ;guardar por si despuÃ©s miramos la del player
             
-            ;MIRAMOS SI EL ESCUDO ESTÁ ACTIVO, para eso, dos comprobaciones
-            ;1 (está el espacio presionado)?
-            ;2(estamos en el tiempo disponible para la activación del mismo)?
+            ;MIRAMOS SI EL ESCUDO ESTÃ ACTIVO, para eso, dos comprobaciones
+            ;1 (estÃ¡ el espacio presionado)?
+            ;2(estamos en el tiempo disponible para la activaciÃ³n del mismo)?
             MOVE.B  #19,D0
             MOVE.L  #KBDSHIELD<<24,D1
             TRAP #15
@@ -124,7 +124,7 @@ BALUPD
             BEQ .PLRCOLISION ;No estamos presionando espacio, miramos si
             ;la bola toca al jugador
             
-            ;¡HEMOS PRESIONADO ESPACIO!
+            ;Â¡HEMOS PRESIONADO ESPACIO!
             MOVE.W (SHIELDTIMEEN),D6
             MOVE.W (VTIMER),D7
             CMP D7,D6
@@ -187,7 +187,45 @@ BALUPD
             JSR     UTLCHCOL
             TST.B   D0
             BEQ     .DONE
-            JSR     AGLKILL
+            ;GAME OVER
+            ;DESABILITAMOS EL DOUBLE BUFFER
+            MOVE.W #16,D1
+            MOVE.W #92,D0
+            TRAP #15
+            
+            ;Clear Screen : Set D1.W to $FF00
+            MOVE.W #11,D0
+            MOVE.W #$FF00,D1
+            TRAP #15
+            
+            MOVE.W (VTIMER),D6
+            MOVE.W (VTIMER),D7
+            ADD.W #4,D7
+            
+            LEA GAMEOVER1,A1
+            MOVE.W #13,D0
+            TRAP #15
+           
+            
+            
+            
+            LEA GAMEOVER2,A1
+            
+            MOVE.W #13,D0
+            TRAP #15
+            
+            LEA GAMEOVER3,A1
+            MOVE.W #13,D0
+            TRAP #15
+            
+            LEA GAMEOVER4,A1
+            MOVE.W #13,D0
+            TRAP #15
+            
+.GAMEOVER
+            CMP D6,D7
+            BNE .GAMEOVER
+            SIMHALT            
            
             
             
