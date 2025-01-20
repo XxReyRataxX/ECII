@@ -188,7 +188,7 @@ BALUPD
             TST.B   D0
             BEQ     .DONE
             ;GAME OVER
-            ;DESABILITAMOS EL DOUBLE BUFFER
+            ;DESHABILITAMOS EL DOUBLE BUFFER
             MOVE.W #16,D1
             MOVE.W #92,D0
             TRAP #15
@@ -198,12 +198,19 @@ BALUPD
             MOVE.W #$FF00,D1
             TRAP #15
             
-            MOVE.W (VTIMER),D6
-            MOVE.W (VTIMER),D7
-            ADD.W #4,D7
+            
+            MOVE.L #$00000000,D1
+            MOVE.W #81,D0        ; SET FILL COLOR
+            TRAP #15
+            
+            			
+	MOVE.L #$000000FF,D1
+            MOVE.W #80,D0        ; SET PEN COLOR
+            TRAP #15
+
             
             LEA GAMEOVER1,A1
-            MOVE.W #13,D0
+            MOVE.W #14,D0
             TRAP #15
            
             
@@ -211,20 +218,22 @@ BALUPD
             
             LEA GAMEOVER2,A1
             
-            MOVE.W #13,D0
+            MOVE.W #14,D0
             TRAP #15
             
             LEA GAMEOVER3,A1
-            MOVE.W #13,D0
+            MOVE.W #14,D0
             TRAP #15
             
             LEA GAMEOVER4,A1
-            MOVE.W #13,D0
+            MOVE.W #14,D0
             TRAP #15
             
-.GAMEOVER
-            CMP D6,D7
-            BNE .GAMEOVER
+            LEA GAMEOVER5,A1
+            MOVE.W #14,D0
+            TRAP #15
+            
+
             SIMHALT            
            
             
