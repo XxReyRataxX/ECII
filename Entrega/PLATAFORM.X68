@@ -18,7 +18,18 @@ PINIT
     MOVE.W  #1, 4(A0)
     MOVE.W  #1, 6(A0)
     RTS
-
+; ------------------------------------------------------------------------------
+PINIT1
+; INITIALIZE PLATAFORMA.
+; INPUT    : NONE 
+; OUTPUT   : NONE
+; MODIFIES : XCENTER, YCENTER, MOVIMIENTO
+; ------------------------------------------------------------------------------
+    MOVE.W  #100, (A0)          ;INICIALIZAR COORDENADAS DE PLATAFORMA
+    MOVE.W  #250, 2(A0)
+    MOVE.W  #1, 4(A0)
+    MOVE.W  #1, 6(A0)
+    RTS
 PUPDATE
 ; UPDATE PLATAFORMA COORDENADES, SI CHOCA CONTRA PARED, NEGAR A MOVIMIENTO PARA ACTUALIZAR LA COORDENADA
 ; INPUT    : NONE
@@ -97,13 +108,13 @@ PPLOT
 ; -----------------------------------------------------------------------------
 
             MOVEM.L D0-D7, -(A7)
-            
+            MOVE.B  #80,D0                  
+            MOVE.L  #$00FFFFFF,D1
+            TRAP    #15
             MOVE.B  #81,D0                  ;-------- COLORES
             MOVE.L  #$00800000,D1
             TRAP    #15
-            MOVE.B  #80,D0                  
-            MOVE.L  #$00FFFFFF,D1
-            TRAP    #15                     
+                                 
             
             
             MOVE.W  2(A0),D2            ;-------- COORDENADAS Y
@@ -122,4 +133,5 @@ PPLOT
             MOVEM.L (A7)+,D0-D7   
             
             RTS 
+
 
