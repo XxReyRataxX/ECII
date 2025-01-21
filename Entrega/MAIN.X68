@@ -45,6 +45,7 @@ START:                  ; first instruction of program
            CLR (SHIELDINICIO) 
 
            MOVE.W #0,(PLTEN)
+           MOVE.W #0,(PLTEN1)
            MOVE.W #0,(BALEN)
             CLR.L D2
             MOVE.W #8,D0
@@ -65,6 +66,11 @@ START:                  ; first instruction of program
             JSR     SCRPLOT
             TRAP   #MOUSETRAP
 	TRAP   #KBDTRAP                ; READ KEYBOARD
+	
+	
+	
+	
+	
 	CMP #15,(VTIMER)
             BNE     .II
             CMP     #0,(PLTEN)
@@ -74,8 +80,23 @@ START:                  ; first instruction of program
             LEA PUPDATE, A2
             LEA PPLOT,A3
             MOVE.W #2,D0
-           JSR      AGLADD
-.II         
+            JSR      AGLADD
+            
+         
+
+.II
+
+            CMP #30,(VTIMER)
+            BNE .III
+            CMP #0,(PLTEN1)
+            BNE .III
+            ADDQ #1,(PLTEN1)
+            LEA PINIT2,A1
+            LEA PUPDATE1, A2
+            LEA PPLOT,A3
+            MOVE.W #2,D0
+            JSR      AGLADD
+.III         
              MOVE.W (SEGUNDOS),D4
             MOVE.W  (VTIMER),D5
             CMP     D4,D5
@@ -152,7 +173,3 @@ START:                  ; first instruction of program
 
 
 
-*~Font name~Courier New~
-*~Font size~10~
-*~Tab type~0~
-*~Tab size~4~
