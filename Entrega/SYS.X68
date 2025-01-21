@@ -113,6 +113,7 @@ SCRPLOT
 	LEA TIMER,A1
 	CLR.L D1
             CLR.L D0
+            MOVE.W (VTIMER),D4
             MOVE.W (VTIMER),D1
             MOVE.B #17,D0
             TRAP #15 ;TIMER
@@ -127,25 +128,38 @@ SCRPLOT
 	
             MOVE.B #14,D0
             TRAP #15
-            
-            MOVE.W (SHIELDENA),D2
-            
-            ; SI D3 = 0 significa shield
-            ; SI D3 = 1 significa TP
+            ;indicador de shield o tp para ROJO
             MOVE.L #0,D3
-            CMP.W #1,D2            
+            MOVE.W (SHIELDTIMEEN),D5
+            CMP D5,D4
+            BGT .POSIBLEROJO
+            
+            CMP D5,D4
             BEQ .ROJO
+            BRA .VERDE
+            
             
            
             
        
             
-           
+.VERDE           
             
             MOVE.L #$0000FF00,D1
             MOVE.W #81,D0        ; SET FILL COLOR
             TRAP #15
             ;Dibujamos cuadrado
+            CMP #0,D3
+            BEQ .CHECKPOINT
+            BRA .CHECKPOINT2
+
+            
+.POSIBLEROJO
+            MOVE.L #0,D3
+            MOVE.W (SHIELDCOOLDOWN),D5
+            CMP D4,D5
+            BGT .ROJO
+            BRA .VERDE
             
 .CHECKPOINT
             MOVE.W #65,D1
@@ -175,8 +189,11 @@ SCRPLOT
             TRAP #15
             
             MOVE.L #1,D3
-            CMP.W #0,D2
-            BNE .ROJO
+            MOVE.W (VTIMER),D4
+            MOVE.W (TIMEENABLE),D5
+            CMP D4,D5
+            BGE .ROJO
+            BRA .VERDE
             
 .CHECKPOINT2
             MOVE.W #75,D1
@@ -411,6 +428,9 @@ REVISION:
 
 PRESSED:
              MOVE.W (VTIMER),(LASTENA)
+             MOVE.W (VTIMER),D2
+             ADD.W #6,D2
+             MOVE.W D2,(TIMEENABLE)
             MOVE.W (MOUSEPOSX),(PLRPOSX)
             MOVE.W (MOUSEPOSY),(PLRPOSY)
             MOVE.W #1,(ENATP)
@@ -419,11 +439,11 @@ PRESSED:
             
 
 CHECKTIMER:
+            MOVE.W (TIMEENABLE),D4
             MOVE.W (VTIMER),D3
-            SUB.W (LASTENA),D3
             
-            CMP #6,D3
-            BLT NOT_PRESSED
+            CMP D3,D4
+            BGE NOT_PRESSED
             CLR.W (ENATP)
             
          
@@ -487,6 +507,7 @@ FILLOAD
             TRAP    #15
             MOVEM.L (A7)+,D0-D2/A1          ; RESTORE REGISTERS
             RTS
+
 
 
 

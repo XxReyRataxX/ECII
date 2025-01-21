@@ -1,6 +1,6 @@
-00004FC2 Starting Address
-Assembler used: EASy68K Editor/Assembler v5.15.04
-Created On: 15/01/2025 11:30:02
+00005570 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 21/01/2025 20:51:41
 
 00000000                             1  SCRISR
 00000000                             2  ; SCREEN TIMER ISR. INCREASES THE INTERRUPT COUNTER AND UPDATES DOUBLE BUFFER.
@@ -9,9 +9,9 @@ Created On: 15/01/2025 11:30:02
 00000000                             5  ; MODIFIES - NONE
 00000000                             6  ; -----------------------------------------------------------------------------
 Line 7 ERROR: Undefined symbol
-00000000  5239 00544490              7              ADDQ.B  #1,(SCRINTCT)           ; UPDATE INT FLAG/COUNTER
+00000000  5239 005455C8              7              ADDQ.B  #1,(SCRINTCT)           ; UPDATE INT FLAG/COUNTER
 Line 8 ERROR: Undefined symbol
-00000006  5239 00544490              8              ADDQ.B  #1,(SCRCYCCT)           ; UPDATE CYCLE COUNTER
+00000006  5239 005455C8              8              ADDQ.B  #1,(SCRCYCCT)           ; UPDATE CYCLE COUNTER
 0000000C  4E73                       9              RTE
 0000000E                            10  SCRINIT
 0000000E  007C 0700                 11              ORI.W   #$0700,SR               ; DISABLE ALL INT
@@ -36,307 +36,620 @@ Line 13 ERROR: Invalid syntax
 00000042  123C 0005                 28              MOVE.B  #5,D1                   ; ENABLE EXCEPTION PROCESSING
 00000046  103C 0020                 29              MOVE.B  #32,D0
 0000004A  4E4F                      30              TRAP    #15
-0000004C                            31             ; ENABLE TIMED INTERRUPT
-0000004C  103C 0020                 32              MOVE.B  #32,D0
-00000050  123C 0006                 33              MOVE.B  #6,D1
-00000054  143C 0081                 34              MOVE.B  #$81,D2
-00000058  7614                      35              MOVE.L  #20,D3
-0000005A  4E4F                      36              TRAP    #15
-0000005C                            37              
-0000005C                            38              
-Line 39 ERROR: Undefined symbol
-0000005C  4239 004DBB8E             39              CLR.B   (SCRINTCT)              ; PREPARE INTERRUPT FLAG
-Line 40 ERROR: Undefined symbol
-00000062  4239 004DBB8E             40              CLR.B   (SCRCYCCT) 
-00000068  027C F8FF                 41              ANDI.W  #$F8FF,SR               ; ENABLE INTS            
-0000006C  4E75                      42              RTS 
-0000006E                            43  * Put variables and constants here
-0000006E                            44  
-Line 45 ERROR: Symbol value differs between first and second pass
-0000006E                            45  KBDINIT     
-0000006E                            46      ; INITIALIZES THE SYSTEM VARIABLES KBDSYS AND KBDVAL
-0000006E                            47  ; INPUT    - NONE
-0000006E                            48  ; OUTPUT   - NONE
-0000006E                            49  ; MODIFIES - NONE
-0000006E                            50  ; -----------------------------------------------------------------------------
-Line 51 ERROR: Undefined symbol
-0000006E  4239 004DBB8E             51              CLR.B   (KBDVAL)                    ; INIT VARS
+0000004C                            31              ; ENABLE TIMED INTERRUPT
+0000004C  4285                      32             CLR.L D5
+0000004E  4286                      33             CLR.L D6
+00000050  4284                      34             CLR.L D4
+Line 35 ERROR: Undefined symbol
+00000052  33FC 0001 005455B8        35             MOVE.W   #1,(ENFPS)
+Line 36 ERROR: Undefined symbol
+0000005A  33FC 0000 005455B8        36              MOVE.W   #0,(FPSAN)
+00000062  3A3C 03E8                 37             MOVE.W #1000,D5
+Line 38 ERROR: Undefined symbol
+00000066  383C BD16                 38             MOVE.W #FPS,D4
+0000006A  103C 0020                 39              MOVE.B  #32,D0
+0000006E  123C 0006                 40              MOVE.B  #6,D1
+00000072  143C 0081                 41              MOVE.B  #$81,D2
+Line 42 ERROR: Undefined symbol
+00000076  8AFC BD16                 42              DIVU.W  #FPS, D5         ; Divide D0 por D1 (D0 = cociente y resto)
+0000007A  3C05                      43              MOVE.W D5,D6
+0000007C  2606                      44              MOVE.L D6,D3
+0000007E  4E4F                      45              TRAP    #15
+00000080  4286                      46              CLR.L D6
+00000082  2C05                      47               MOVE.L  D5, D6         ; Copia D0 para extraer el resto
+00000084  0286 000000FF             48              ANDI.L  #$00FF, D6     ; MÃ¡scara para obtener el resto (20)
+0000008A  CCFC 03E8                 49              MULU.W  #1000, D6      ; Multiplicar el resto por 1000
+0000008E                            50  
+0000008E  8CC4                      51              DIVU.W  D4,D6          ; D4 = parte decimal (2857)
 Line 52 ERROR: Undefined symbol
-00000074  4239 004DBB8E             52              CLR.B   (KBDEDGE)
-Line 53 ERROR: Invalid syntax
-0000007A                            53              MOVE.L  #KBDREAD, ($80+KBDTRAP*4)    ; INSTALL
-0000007A  4E75                      54              RTS
-0000007C                            55  
-Line 56 ERROR: Symbol value differs between first and second pass
-0000007C                            56  KBDREAD
-0000007C                            57  ; TRAP SERVICE ROUTINE.
-0000007C                            58  ; UPDATES THE SYSTEM VARIABLES KBDEDGE AND KBDVAL ACCORDING TO THE BITFIELD
-0000007C                            59  ; DESCRIBED IN SYSCONST. KBDVAL HOLDS THE CURRENT VALUES AND KBDEFGE HOLDS
-0000007C                            60  ; RISING EDGES FROM PREVIOUS CALL TO THE CURRENT ONE.
-0000007C                            61  ; INPUT    - NONE
-0000007C                            62  ; OUTPUT   - (KBDVAL) AND (KBDEDGE)
-0000007C                            63  ; MODIFIES - NONE
-0000007C                            64  ; -----------------------------------------------------------------------------
-0000007C  48E7 F000                 65              MOVEM.L D0-D3,-(A7)
-00000080  103C 0013                 66              MOVE.B  #19,D0
-Line 67 ERROR: Invalid syntax
-00000084                            67              MOVE.L  #KBDDOWN<<24+KBDRIGHT<<16+KBDUP<<8+KBDLEFT,D1
-00000084  4E4F                      68              TRAP    #15
-00000086  6100 0052                 69              BSR     .STORE                  ; STORE KEY UP,DOWN,LEFT AND RIGTH.
-Line 70 ERROR: Undefined symbol
-0000008A  1039 004DBB8E             70              MOVE.B  (KBDVAL),D0             ; COMPUTE EDGE.
-00000090  4600                      71              NOT.B   D0                      ; EDGE=NOT(PREVIOUS) AND CURRENT.
-00000092  C002                      72              AND.B   D2,D0
-Line 73 ERROR: Undefined symbol
-00000094  13C2 00544490             73              MOVE.B  D2,(KBDVAL)             ; STORE VALUES (PRESS AND EDGE)
-Line 74 ERROR: Undefined symbol
-0000009A  13C0 00544480             74              MOVE.B  D0,(KBDEDGE)
-000000A0                            75              ;SHIELD
-000000A0                            76              
-000000A0  103C 0013                 77              MOVE.B  #19,D0
-Line 78 ERROR: Invalid syntax
-000000A4                            78              MOVE.L  #KBDSHIELD<<24,D1
-000000A4  4E4F                      79              TRAP #15
-000000A6                            80              
-000000A6  0801 0018                 81              BTST.L #24,D1
-000000AA  6600 003C                 82              BNE .SHIELDPLOT
-Line 83 ERROR: Symbol value differs between first and second pass
-000000AE                            83  .RETURN
-000000AE  4CDF 000F                 84              MOVEM.L (A7)+,D0-D3
-000000B2  4E73                      85              RTE
-000000B4                            86  
+00000090  33C6 005455B8             52              MOVE.W  D6,(ERROR)
+00000096                            53  
+00000096                            54              
+00000096                            55              
+Line 56 ERROR: Undefined symbol
+00000096  4239 004DBD16             56              CLR.B   (SCRINTCT)              ; PREPARE INTERRUPT FLAG
+Line 57 ERROR: Undefined symbol
+0000009C  4239 004DBD16             57              CLR.B   (SCRCYCCT) 
+000000A2  027C F8FF                 58              ANDI.W  #$F8FF,SR               ; ENABLE INTS            
+000000A6  4E75                      59              RTS
+Line 60 ERROR: Symbol value differs between first and second pass
+000000A8                            60  FPSUPD
+000000A8  48A7 FE00                 61              MOVEM.W D0-D6,-(A7)
+Line 62 ERROR: Undefined symbol
+000000AC  2639 004DBD16             62              MOVE.L (FPSIN),D3
+Line 63 ERROR: Undefined symbol
+000000B2  2839 004DBD16             63              MOVE.L  (FPSAC),D4
+000000B8  9883                      64              SUB.L   D3,D4
+000000BA                            65             
+000000BA  B87C 0000                 66              CMP.W   #0,D4
+000000BE  6700 0066                 67              BEQ     .FF
+000000C2  B87C 0000                 68              CMP.W   #0,D4
+000000C6  6C00 0014                 69              BGE     .ND
+000000CA  4484                      70              NEG.L D4
+Line 71 ERROR: Symbol value differs between first and second pass
+000000CC                            71  .ND
+000000CC                            72  
+000000CC  C9FC 000A                 73              MULS    #10, D4
+000000D0  4286                      74              CLR.L D6
+000000D2  4285                      75              CLR.L D5
+Line 76 ERROR: Undefined symbol
+000000D4  1C39 004DBD16             76              MOVE.B  (SCRCYCCT),D6
+Line 77 ERROR: Symbol value differs between first and second pass
+000000DA                            77  .AA         SUB.L   D6,D4
+000000DA  B8BC 00000000             78              CMP.L   #0,D4
+000000E0  6D00 0018                 79              BLT     .TN
+000000E4  5245                      80              ADDQ.W  #1,D5
+000000E6  6002                      81              BRA .AA
+Line 82 ERROR: Symbol value differs between first and second pass
+000000E8                            82  .TN         CLR.L D3
+000000E8  4284                      83              CLR.L D4
+000000EA  BA7C 0000                 84              CMP.W   #0,D5
+000000EE  6700 0036                 85              BEQ     .FF
+000000F2  263C 000003E8             86              MOVE.L  #1000,D3
 Line 87 ERROR: Symbol value differs between first and second pass
-000000B4                            87  .STORE      MOVE.W  #3,D3                   ; TRANSLATES THE 8-BIT ENCODING
-Line 88 ERROR: Symbol value differs between first and second pass
-000000B4                            88  .LOOP       LSL.L   #8,D1                   ; OF TRAP #15 TASK 19 INTO A 1-BIT
-000000B4  E312                      89              ROXL.B  #1,D2                   ; PER KEYPRESS ENCODING
-000000B6  51CB 0026                 90              DBRA.W  D3,.LOOP
-000000BA  4E75                      91              RTS
-000000BC                            92             
-000000BC                            93             
-000000BC                            94  
-000000BC                            95  
-000000BC                            96  
-000000BC                            97              
-000000BC                            98  
+000000F8                            87  .CA         SUB.L     D5,D3
+000000F8  B6BC 00000000             88              CMP.L   #0,D3
+000000FE  6D00 001C                 89              BLT     .SN
+00000102  5244                      90              ADDQ.W  #1,D4
+00000104  6006                      91              BRA .CA
+Line 92 ERROR: Symbol value differs between first and second pass
+00000106                            92  .SN         
+00000106                            93                  
+00000106                            94              
+Line 95 ERROR: Undefined symbol
+00000106  33C4 005455B8             95              MOVE.W  D4,(FPSAN)
+0000010C                            96         
+0000010C                            97       
+0000010C  6000 0020                 98              BRA .TRAP
 Line 99 ERROR: Symbol value differs between first and second pass
-000000BC                            99  .SHIELDPLOT
-Line 100 ERROR: Undefined symbol
-000000BC  0C79 0000 00544480       100              CMP #0,(SHIELDENA)
-000000C4  6E00 0078                101              BGT .CHECKTIMER2
-Line 102 ERROR: Symbol value differs between first and second pass
-000000C8                           102  .DIB           
-000000C8                           103              ;si enable es uno, actualizamos los ultimos valores del last enable
-Line 104 ERROR: Undefined symbol
-000000C8  33F9 004DBB8E 00544480   104              MOVE.W (VTIMER),(LASTSHIELDENA)
-000000D2                           105              
-000000D2                           106                          
-000000D2                           107             
-000000D2  223C 00FF0000            108              MOVE.L #$00FF0000,D1
-000000D8  303C 0050                109              MOVE.W #80,D0        ; SET PEN COLOR
-000000DC  4E4F                     110              TRAP #15
-Line 111 ERROR: Undefined symbol
-000000DE  3A39 004DBB8E            111              MOVE.W (PLRPOSX),D5
-Line 112 ERROR: Undefined symbol
-000000E4  3C39 004DBB8E            112              MOVE.W (PLRPOSY),D6
-000000EA  0645 000F                113              ADD.W #15,D5 
-000000EE  0646 000F                114              ADD.W #15,D6
-000000F2                           115              
-000000F2                           116           
-000000F2  0445 001E                117             SUB.W #30,D5
-000000F6  3205                     118              MOVE.W D5,D1
-000000F8                           119    
-000000F8  0645 003C                120              ADD.W #60,D5
-000000FC  3605                     121              MOVE.W D5,D3
-000000FE                           122              
-000000FE  0446 001E                123              SUB.W #30,D6
-00000102  3406                     124              MOVE.W D6,D2
-00000104  0646 003C                125              ADD.W #60,D6
-00000108                           126              
-00000108  3806                     127              MOVE.W D6,D4
-0000010A  303C 005B                128              MOVE.W #91,D0
-0000010E  4E4F                     129              TRAP #15
-00000110                           130              
-00000110                           131              
-00000110  60C2                     132              BRA .RETURN
-00000112                           133  
-Line 134 ERROR: Symbol value differs between first and second pass
-00000112                           134  .CHECKTIMER2:
-Line 135 ERROR: Undefined symbol
-00000112  3639 004DBB8E            135              MOVE.W (VTIMER),D3
-Line 136 ERROR: Undefined symbol
-00000118  9679 004DBB8E            136              SUB.W (LASTSHIELDENA),D3
-0000011E                           137             
-0000011E                           138  
-0000011E  B67C 0004                139              CMP #4,D3
-00000122  66B0                     140              BNE .RETURN
-00000124                           141              
-00000124  60AE                     142              BRA .RETURN
-00000126                           143              
-00000126                           144  
-00000126                           145              
-00000126                           146             
-Line 147 ERROR: Symbol value differs between first and second pass
-00000126                           147  MOUSEINIT     
-00000126                           148      ; INITIALIZES THE SYSTEM VARIABLES KBDSYS AND KBDVAL
-00000126                           149  ; INPUT    - NONE
-00000126                           150  ; OUTPUT   - NONE
-00000126                           151  ; MODIFIES - NONE
-00000126                           152  ; -----------------------------------------------------------------------------
-Line 153 ERROR: Undefined symbol
-00000126  4279 004DBB8E            153              CLR.W   (MOUSEPOSX)                    ; INIT VARS
+00000110                            99  .FF         MOVE.W #100,(FPSAN)
+Line 100 ERROR: Symbol value differs between first and second pass
+00000110                           100  .TRAP       
+00000110                           101  
+00000110  4C9F 007F                102              MOVEM.W (A7)+,D0-D6
+00000114  4E75                     103              RTS 
+00000116                           104  * Put variables and constants here
+Line 105 ERROR: Symbol value differs between first and second pass
+00000116                           105  SCRPLOT
+00000116                           106              
+00000116  48E7 FF00                107              MOVEM.L D0-D7,-(A7)
+0000011A                           108              
+0000011A  223C 00FF0000            109              MOVE.L #$00FF0000,D1
+00000120  303C 0051                110              MOVE.W #81,D0        ; SET FILL COLOR
+00000124  4E4F                     111              TRAP #15
+00000126                           112              
+Line 113 ERROR: Undefined symbol
+00000126  43F9 004DBD16            113              LEA TIMER,A1
+0000012C  4281                     114              CLR.L D1
+0000012E  4280                     115              CLR.L D0
+Line 116 ERROR: Undefined symbol
+00000130  3839 004DBD16            116              MOVE.W (VTIMER),D4
+Line 117 ERROR: Undefined symbol
+00000136  3239 004DBD16            117              MOVE.W (VTIMER),D1
+0000013C  103C 0011                118              MOVE.B #17,D0
+00000140  4E4F                     119              TRAP #15 ;TIMER
+00000142                           120              
+00000142                           121  
+00000142                           122              
+00000142  223C 00FFFFFF            123              MOVE.L #$00FFFFFF,D1
+00000148  303C 0050                124              MOVE.W #80,D0        ; SET PEN COLOR
+0000014C  4E4F                     125              TRAP #15
+0000014E                           126              
+Line 127 ERROR: Undefined symbol
+0000014E  43F9 004DBD16            127              LEA SHIELD,A1
+00000154                           128              
+00000154  103C 000E                129              MOVE.B #14,D0
+00000158  4E4F                     130              TRAP #15
+0000015A                           131              
+Line 132 ERROR: Undefined symbol
+0000015A  3A39 004DBD16            132              MOVE.W (SHIELDTIMEEN),D5
+00000160  B845                     133              CMP D5,D4
+00000162  6E00 003A                134              BGT .POSIBLEROJO
+00000166  B845                     135              CMP D5,D4
+00000168  6700 00CA                136              BEQ .ROJO
+0000016C  6000 0020                137              BRA .VERDE
+00000170                           138              
+00000170                           139              
+00000170                           140             
+00000170                           141              
+00000170                           142         
+00000170                           143              
+Line 144 ERROR: Symbol value differs between first and second pass
+00000170                           144  .VERDE           
+00000170                           145              
+00000170  223C 0000FF00            146              MOVE.L #$0000FF00,D1
+00000176  303C 0051                147              MOVE.W #81,D0        ; SET FILL COLOR
+0000017A  4E4F                     148              TRAP #15
+0000017C                           149              ;Dibujamos cuadrado
+0000017C  6000 0030                150              BRA .CHECKPOINT
+00000180                           151              
+Line 152 ERROR: Symbol value differs between first and second pass
+00000180                           152  .POSIBLEROJO
+00000180  7600                     153              MOVE.L #0,D3
 Line 154 ERROR: Undefined symbol
-0000012C  4279 004DBB8E            154              CLR.W   (MOUSEPOSY)
-Line 155 ERROR: Undefined symbol
-00000132  4279 004DBB8E            155              CLR.W   (ENATP)
-Line 156 ERROR: Undefined symbol
-00000138  4279 004DBB8E            156              CLR.W   (LASTENA)
-0000013E                           157              
-Line 158 ERROR: Invalid syntax
-0000013E                           158              MOVE.L  #REVISION, ($80+MOUSETRAP*4)    ; INSTALL
-0000013E  4E75                     159              RTS
-00000140                           160              
-Line 161 ERROR: Symbol value differs between first and second pass
-00000140                           161  REVISION:
-00000140  48E7 FF00                162              MOVEM.L D0-D7,-(A7)
-00000144                           163  
-00000144                           164              ; READ CURRENT STATE OF MOUSE AND CHANGE MOUSE COORDINATES
-00000144  103C 003D                165              MOVE.B  #61,D0
-00000148  123C 0000                166              MOVE.B  #00,D1
-0000014C                           167              
-0000014C  4E4F                     168              TRAP    #15
-Line 169 ERROR: Undefined symbol
-0000014E  33C1 00544480            169              MOVE.W  D1,(MOUSEPOSX)
-00000154                           170              
-00000154                           171  
-00000154                           172              
-00000154                           173              
-00000154                           174  
-00000154  4841                     175              SWAP    D1            ; Intercambia los 16 bits superiores e inferiores de D1
-00000156                           176  
-Line 177 ERROR: Undefined symbol
-00000156  33C1 00544480            177              MOVE.W  D1,(MOUSEPOSY)
-0000015C  4841                     178              SWAP    D1
-0000015E                           179              
-0000015E                           180  
-0000015E                           181              ; IF LEFT CLICK PRESSED AND IT'S INSIDE THE BUTTON ADD 1
-0000015E  0800 0000                182              BTST    #0,D0
-00000162                           183              
-00000162  6700 0088                184              BEQ     NOT_PRESSED
-Line 185 ERROR: Undefined symbol
-00000166  0C79 0000 00544480       185              CMP.W   #0,(ENATP)
-0000016E  6600 0062                186              BNE CHECKTIMER
-00000172                           187  
-Line 188 ERROR: Symbol value differs between first and second pass
-00000172                           188  PRESSED:
-Line 189 ERROR: Undefined symbol
-00000172  33F9 004DBB8E 00544480   189               MOVE.W (VTIMER),(LASTENA)
-Line 190 ERROR: Undefined symbol
-0000017C  33F9 004DBB8E 00544480   190              MOVE.W (MOUSEPOSX),(PLRPOSX)
-Line 191 ERROR: Undefined symbol
-00000186  33F9 004DBB8E 00544480   191              MOVE.W (MOUSEPOSY),(PLRPOSY)
-Line 192 ERROR: Undefined symbol
-00000190  33FC 0001 00544480       192              MOVE.W #1,(ENATP)
-00000198                           193              
-00000198  6000 0052                194              BRA NOT_PRESSED
-0000019C                           195              
-0000019C                           196  
-Line 197 ERROR: Symbol value differs between first and second pass
-0000019C                           197  CHECKTIMER:
-Line 198 ERROR: Undefined symbol
-0000019C  3639 004DBB8E            198              MOVE.W (VTIMER),D3
-Line 199 ERROR: Undefined symbol
-000001A2  9679 004DBB8E            199              SUB.W (LASTENA),D3
-000001A8                           200              
-000001A8  B67C 0002                201              CMP #2,D3
-000001AC  6600 003E                202              BNE NOT_PRESSED
-Line 203 ERROR: Undefined symbol
-000001B0  4279 004DBB8E            203              CLR.W (ENATP)
-000001B6                           204              
-000001B6                           205           
-Line 206 ERROR: Symbol value differs between first and second pass
-000001B6                           206  NOT_PRESSED:          
-000001B6  4CDF 00FF                207              MOVEM.L  (A7)+,D0-D7
-000001BA  4E73                     208              RTE
-000001BC                           209              
-000001BC                           210             
-000001BC                           211  ; -----------------------------------------------------------------------------
-Line 212 ERROR: Symbol value differs between first and second pass
-000001BC                           212  SCRUPD
-000001BC                           213  ; TRAP SERVICE ROUTINE IN CHARGE OF VISUALIZING CURRENT FRAME AND CLEARING
-000001BC                           214  ; BUFFER FOR THE NEXT ONE.
-000001BC                           215  ; INPUT    - NONE
-000001BC                           216  ; OUTPUT   - NONE
-000001BC                           217  ; MODIFIES - NONE
-000001BC                           218  ; -----------------------------------------------------------------------------
-000001BC  48A7 C000                219              MOVEM.W D0-D1,-(A7)
-000001C0  103C 005E                220              MOVE.B  #94,D0                  ; UPDATE DOUBLE BUFFER
-000001C4  4E4F                     221              TRAP    #15
-000001C6  323C FF00                222              MOVE.W  #$FF00,D1               ; CLEAR HIDDEN BUFFER
-000001CA  103C 000B                223              MOVE.B  #11,D0
-000001CE  4E4F                     224              TRAP    #15
-000001D0  4C9F 0003                225              MOVEM.W (A7)+,D0-D1
-000001D4  4E73                     226              RTE
+00000182  3A39 004DBD16            154              MOVE.W (SHIELDCOOLDOWN),D5
+00000188  BA44                     155              CMP D4,D5
+0000018A  6C00 00A8                156              BGE .ROJO
+0000018E  60FE                     157              BRA .VERDE
+00000190                           158              
+Line 159 ERROR: Symbol value differs between first and second pass
+00000190                           159  .CHECKPOINT
+00000190  323C 0041                160              MOVE.W #65,D1
+00000194  343C 000F                161              MOVE.W #15,D2
+00000198  363C 0050                162              MOVE.W #80,D3
+0000019C  383C 001E                163              MOVE.W #30,D4
+000001A0  303C 0057                164              MOVE.W #87,D0
+000001A4  4E4F                     165              TRAP #15
+000001A6                           166              
+000001A6                           167              
+000001A6  223C 00FF0000            168              MOVE.L #$00FF0000,D1
+000001AC  303C 0051                169              MOVE.W #81,D0        ; SET FILL COLOR
+000001B0  4E4F                     170              TRAP #15
+000001B2                           171              
+000001B2                           172              
+000001B2                           173              ;HAREMOS PRINT DEL TELEPORT
+Line 174 ERROR: Undefined symbol
+000001B2  43F9 004DBD16            174              LEA TELEPORT,A1
+000001B8                           175              
+000001B8  103C 000E                176              MOVE.B #14,D0
+000001BC  4E4F                     177              TRAP #15
+000001BE                           178              
+000001BE  4282                     179              CLR.L D2
+Line 180 ERROR: Undefined symbol
+000001C0  3439 004DBD16            180              MOVE.W (ENATP),D2
+000001C6                           181              
+000001C6  223C 0000FF00            182              MOVE.L #$0000FF00,D1
+000001CC  303C 0051                183              MOVE.W #81,D0        ; SET FILL COLOR
+000001D0  4E4F                     184              TRAP #15
+000001D2                           185              
+000001D2  7601                     186              MOVE.L #1,D3
+000001D4  B47C 0000                187              CMP.W #0,D2
+000001D8  6600 005A                188              BNE .ROJO
+000001DC                           189              
+Line 190 ERROR: Symbol value differs between first and second pass
+000001DC                           190  .CHECKPOINT2
+000001DC  323C 004B                191              MOVE.W #75,D1
+000001E0  343C 001E                192              MOVE.W #30,D2
+000001E4  363C 005A                193              MOVE.W #90,D3
+000001E8  383C 002D                194              MOVE.W #45,D4
+000001EC  303C 0057                195              MOVE.W #87,D0
+000001F0  4E4F                     196              TRAP #15
+000001F2                           197             
+000001F2                           198              ;TENEMOS EL CUADRADO DIBUJADO
+000001F2                           199              
+000001F2  223C 00FF0000            200              MOVE.L #$00FF0000,D1
+000001F8  303C 0051                201              MOVE.W #81,D0        ; SET FILL COLOR
+000001FC  4E4F                     202              TRAP #15
+000001FE                           203              
+Line 204 ERROR: Undefined symbol
+000001FE  43F9 004DBD16            204              LEA TXTFPS,A1
+00000204  4281                     205              CLR.L D1
+00000206                           206              
+Line 207 ERROR: Undefined symbol
+00000206  323C BD16                207              MOVE.W #FPS,D1
+0000020A  103C 0011                208              MOVE.B #17,D0
+0000020E  4E4F                     209              TRAP #15
+00000210                           210              
+00000210                           211              
+00000210                           212  
+00000210                           213              
+00000210  4CDF 00FF                214              MOVEM.L (A7)+,D0-D7
+00000214  4E75                     215              RTS
+00000216                           216  
+00000216                           217  
+Line 218 ERROR: Symbol value differs between first and second pass
+00000216                           218  .ROJO
+00000216                           219  
+00000216  223C 000000FF            220              MOVE.L #$000000FF,D1
+0000021C  303C 0051                221              MOVE.W #81,D0        ; SET FILL COLOR
+00000220  4E4F                     222              TRAP #15
+00000222                           223              
+00000222  B67C 0000                224              CMP #0,D3
+00000226  6786                     225              BEQ .CHECKPOINT
+00000228  60D0                     226              BRA .CHECKPOINT2
 Line 227 ERROR: Symbol value differs between first and second pass
-000001D6                           227  FILLOAD
-000001D6                           228  ; LOADS AN FILE FROM DISK TO MEMORY
-000001D6                           229  ; INPUT    : A0 - DESTINATION ADDR. WITH ENOUGH SPACE AVAILABLE.
-000001D6                           230  ;            A1 - POINTER TO FILE NAME
-000001D6                           231  ; OUTPUT   : NONE
-000001D6                           232  ; MODIFIES : NONE
-000001D6                           233  ; NOTE     : THE READ DATA LOOP READS 1 BYTE AT A TIME TO ENSURE ALL FILES CAN
-000001D6                           234  ;            BE LOADED. HOWEVER, IF THE FILE SIZE IS KNOWN BEFOREHAND, NO LOOP
-000001D6                           235  ;            WOULD BE NECESSARY AND A SINGLE CALL TO TRAP #15 TASK 53 WOULD READ
-000001D6                           236  ;            THE WHOLE FILE AS LONG AS THE FILE SIZE IS PLACED INTO D2.L.
-000001D6                           237  ; NOTE     : THE ZERO-TERMINATOR (JUST BEFORE CLOSE THE FILE) IS A REQUIREMENT
-000001D6                           238  ;            FOR TEXT-FILES IF THE TEXT IS TO BE PRINTED. FOR OTHER USES, IT
-000001D6                           239  ;            CAN BE REMOVED.
-000001D6                           240  ; ------------------------------------------------------------------------------
-000001D6  48E7 E040                241              MOVEM.L D0-D2/A1,-(A7)          ; SAVE REGISTERS
-000001DA                           242              ; CLOSE ALL FILES
-000001DA  103C 0032                243              MOVE.B  #50,D0
-000001DE  4E4F                     244              TRAP    #15
-000001E0                           245              ; OPEN FILE (ASSUMES A1 POINTS TO FILENAME)
-000001E0  103C 0033                246              MOVE.B  #51,D0
-000001E4  4E4F                     247              TRAP    #15                     ; D1.L:=FILE HANDLER
-000001E6                           248              ; READ DATA
-000001E6  2248                     249              MOVE.L  A0,A1                   ; A1 MUST BE THE BUFFER ADDRESS
-000001E8  103C 0035                250              MOVE.B  #53,D0                  ; READ DATA TASK
-000001EC  243C 00001000            251              MOVE.L  #4096,D2                   ; BYTES TO READ (ONE BY ONE)
-000001F2  4E4F                     252              TRAP    #15
-000001F4                           253                                 ; PUT A ZERO-TERMINATOR.
-000001F4                           254              ; CLOSE THE FILE
-000001F4  103C 0038                255              MOVE.B  #56,D0
-000001F8  4E4F                     256              TRAP    #15
-000001FA  4CDF 0207                257              MOVEM.L (A7)+,D0-D2/A1          ; RESTORE REGISTERS
-000001FE  4E75                     258              RTS
-00000200                           259  
-00000200                           260  
-00000200                           261  
-00000200                           262  
-Line 263 WARNING: END directive missing, starting address not set
+0000022A                           227  KBDINIT     
+0000022A                           228      ; INITIALIZES THE SYSTEM VARIABLES KBDSYS AND KBDVAL
+0000022A                           229  ; INPUT    - NONE
+0000022A                           230  ; OUTPUT   - NONE
+0000022A                           231  ; MODIFIES - NONE
+0000022A                           232  ; -----------------------------------------------------------------------------
+Line 233 ERROR: Undefined symbol
+0000022A  4239 004DBD16            233              CLR.B   (KBDVAL)                    ; INIT VARS
+Line 234 ERROR: Undefined symbol
+00000230  4239 004DBD16            234              CLR.B   (KBDEDGE)
+00000236                           235              
+Line 236 ERROR: Invalid syntax
+00000236                           236              MOVE.L  #KBDREAD, ($80+KBDTRAP*4)    ; INSTALL
+00000236  4E75                     237              RTS
+00000238                           238  
+Line 239 ERROR: Symbol value differs between first and second pass
+00000238                           239  KBDREAD
+00000238                           240  ; TRAP SERVICE ROUTINE.
+00000238                           241  ; UPDATES THE SYSTEM VARIABLES KBDEDGE AND KBDVAL ACCORDING TO THE BITFIELD
+00000238                           242  ; DESCRIBED IN SYSCONST. KBDVAL HOLDS THE CURRENT VALUES AND KBDEFGE HOLDS
+00000238                           243  ; RISING EDGES FROM PREVIOUS CALL TO THE CURRENT ONE.
+00000238                           244  ; INPUT    - NONE
+00000238                           245  ; OUTPUT   - (KBDVAL) AND (KBDEDGE)
+00000238                           246  ; MODIFIES - NONE
+00000238                           247  ; -----------------------------------------------------------------------------
+00000238  48E7 FF00                248              MOVEM.L D0-D7,-(A7)
+0000023C  103C 0013                249              MOVE.B  #19,D0
+Line 250 ERROR: Invalid syntax
+00000240                           250              MOVE.L  #KBDDOWN<<24+KBDRIGHT<<16+KBDUP<<8+KBDLEFT,D1
+00000240  4E4F                     251              TRAP    #15
+00000242  6100 0062                252              BSR     .STORE                  ; STORE KEY UP,DOWN,LEFT AND RIGTH.
+Line 253 ERROR: Undefined symbol
+00000246  1039 004DBD16            253              MOVE.B  (KBDVAL),D0             ; COMPUTE EDGE.
+0000024C  4600                     254              NOT.B   D0                      ; EDGE=NOT(PREVIOUS) AND CURRENT.
+0000024E  C002                     255              AND.B   D2,D0
+Line 256 ERROR: Undefined symbol
+00000250  13C2 005455C8            256              MOVE.B  D2,(KBDVAL)             ; STORE VALUES (PRESS AND EDGE)
+Line 257 ERROR: Undefined symbol
+00000256  13C0 005455B8            257              MOVE.B  D0,(KBDEDGE)
+0000025C                           258              ;SHIELD
+0000025C                           259              
+0000025C  103C 0013                260              MOVE.B  #19,D0
+Line 261 ERROR: Invalid syntax
+00000260                           261              MOVE.L  #KBDSHIELD<<24,D1
+00000260  4E4F                     262              TRAP #15
+00000262  0801 0018                263              BTST #24,D1
+00000266                           264  
+00000266                           265              
+00000266  6600 004C                266              BNE .SHIELDPLOT
+Line 267 ERROR: Symbol value differs between first and second pass
+0000026A                           267  .RETURN
+0000026A  4CDF 00FF                268              MOVEM.L (A7)+,D0-D7
+0000026E  4E73                     269              RTE
+00000270                           270  
+Line 271 ERROR: Symbol value differs between first and second pass
+00000270                           271  .STORE      MOVE.W  #3,D3                   ; TRANSLATES THE 8-BIT ENCODING
+Line 272 ERROR: Symbol value differs between first and second pass
+00000270                           272  .LOOP       LSL.L   #8,D1                   ; OF TRAP #15 TASK 19 INTO A 1-BIT
+00000270  E312                     273              ROXL.B  #1,D2                   ; PER KEYPRESS ENCODING
+00000272  51CB 0036                274              DBRA.W  D3,.LOOP
+00000276  4E75                     275              RTS
+00000278                           276             
+00000278                           277             
+00000278                           278  
+00000278                           279  
+00000278                           280  
+00000278                           281              
+00000278                           282  
+Line 283 ERROR: Symbol value differs between first and second pass
+00000278                           283  .SHIELDPLOT
+00000278                           284  
+Line 285 ERROR: Undefined symbol
+00000278  3239 004DBD16            285              MOVE.W (SHIELDINICIO),D1
+Line 286 ERROR: Undefined symbol
+0000027E  0C79 0000 005455B8       286              CMP #0,(SHIELDINICIO)
+00000286  6700 0066                287              BEQ .DIB2 ;para obtener datos iniciales
+0000028A                           288              
+Line 289 ERROR: Undefined symbol
+0000028A  0C79 0000 005455B8       289               CMP #0,(SHIELDENA) 
+00000292  6700 00BE                290              BEQ  .CHECKTIMER2
+00000296                           291              
+00000296                           292              ;SE ACABÃ“ LA ACTIVACIÃ“N DEL ESCUDO(4S)
+00000296                           293              ;ESTÃ ACTIVADO EL COOLDOOWN??????
+00000296                           294              
+Line 295 ERROR: Symbol value differs between first and second pass
+00000296                           295  .CHECKLIST           
+Line 296 ERROR: Undefined symbol
+00000296  3639 004DBD16            296               MOVE.W (VTIMER),D3
+Line 297 ERROR: Undefined symbol
+0000029C  3839 004DBD16            297              MOVE.W (SHIELDCOOLDOWN),D4
+000002A2                           298              
+Line 299 ERROR: Undefined symbol
+000002A2  9679 004DBD16            299              SUB.W (SHIELDCOOLDOWN),D3
+000002A8                           300  
+000002A8  B67C 0000                301              CMP #0,D3
+000002AC  6C00 00C8                302              BGE .ENABLE            
+000002B0                           303              
+000002B0  60EE                     304              BRA .RETURN
+Line 305 ERROR: Symbol value differs between first and second pass
+000002B2                           305  .DIB2
+000002B2                           306               
+000002B2                           307            
+Line 308 ERROR: Undefined symbol
+000002B2  3E39 004DBD16            308              MOVE.W (VTIMER),D7
+000002B8  5847                     309              ADD.W #4,D7
+Line 310 ERROR: Undefined symbol
+000002BA  33C7 005455B8            310              MOVE.W D7,(SHIELDTIMEEN)
+000002C0  5847                     311              ADD.W #4,D7
+Line 312 ERROR: Undefined symbol
+000002C2  33C7 005455B8            312              MOVE.W D7,(SHIELDCOOLDOWN)
+000002C8                           313              
+Line 314 ERROR: Undefined symbol
+000002C8  33FC 0001 005455B8       314              MOVE.W #1,(SHIELDINICIO)
+000002D0                           315              
+000002D0  4247                     316              CLR.W D7
+000002D2                           317              
+000002D2                           318              
+000002D2                           319              
+000002D2                           320  
+000002D2                           321  
+000002D2                           322  
+Line 323 ERROR: Symbol value differs between first and second pass
+000002D2                           323  .DIB
+000002D2                           324  
+000002D2                           325                                
+000002D2  4281                     326              CLR.L D1
+000002D4  223C 0000FF00            327              MOVE.L #$0000FF00,D1
+000002DA  303C 0050                328              MOVE.W #80,D0        ; SET PEN COLOR
+000002DE  4E4F                     329              TRAP #15
+Line 330 ERROR: Undefined symbol
+000002E0  3A39 004DBD16            330              MOVE.W (PLRPOSX),D5
+Line 331 ERROR: Undefined symbol
+000002E6  3C39 004DBD16            331              MOVE.W (PLRPOSY),D6
+000002EC  0645 000F                332              ADD.W #15,D5 
+000002F0  0646 000F                333              ADD.W #15,D6
+000002F4                           334              
+000002F4                           335           
+000002F4  0445 001E                336              SUB.W #30,D5
+000002F8  3205                     337              MOVE.W D5,D1
+000002FA                           338    
+000002FA  0645 003C                339              ADD.W #60,D5
+000002FE  3605                     340              MOVE.W D5,D3
+00000300                           341              
+00000300  0446 001E                342              SUB.W #30,D6
+00000304  3406                     343              MOVE.W D6,D2
+00000306  0646 003C                344              ADD.W #60,D6
+0000030A                           345              
+0000030A  3806                     346              MOVE.W D6,D4
+0000030C  303C 005B                347              MOVE.W #91,D0
+00000310  4E4F                     348              TRAP #15
+00000312                           349              
+00000312                           350              
+00000312  608C                     351              BRA .RETURN
+00000314                           352  
+Line 353 ERROR: Symbol value differs between first and second pass
+00000314                           353  .CHECKTIMER2:
+Line 354 ERROR: Undefined symbol
+00000314  3839 004DBD16            354              MOVE.W (SHIELDTIMEEN),D4
+Line 355 ERROR: Undefined symbol
+0000031A  3639 004DBD16            355              MOVE.W (VTIMER),D3
+00000320                           356              
+00000320  9843                     357              SUB.W D3,D4
+00000322                           358             
+00000322  B87C 0000                359              CMP  #0,D4
+00000326  6F00 0042                360              BLE .FIN1
+0000032A                           361              
+0000032A                           362             
+0000032A                           363              
+0000032A                           364              
+0000032A  60E2                     365              BRA .DIB
+0000032C                           366              
+0000032C                           367  
+Line 368 ERROR: Symbol value differs between first and second pass
+0000032C                           368  .FIN1:
+0000032C                           369              
+Line 370 ERROR: Undefined symbol
+0000032C  33FC 0001 005455B8       370              MOVE.W #1,(SHIELDENA)
+00000334  6000 FF6A                371              BRA .RETURN
+00000338                           372  
+00000338                           373  
+Line 374 ERROR: Symbol value differs between first and second pass
+00000338                           374  .ENABLE:
+Line 375 ERROR: Undefined symbol
+00000338  4279 004DBD16            375              CLR.W (SHIELDINICIO)
+Line 376 ERROR: Undefined symbol
+0000033E  4279 004DBD16            376              CLR.W (SHIELDENA)
+00000344  6000 FF5A                377              BRA .RETURN
+00000348                           378                                    
+00000348                           379             
+Line 380 ERROR: Symbol value differs between first and second pass
+00000348                           380  MOUSEINIT     
+00000348                           381      ; INITIALIZES THE SYSTEM VARIABLES KBDSYS AND KBDVAL
+00000348                           382  ; INPUT    - NONE
+00000348                           383  ; OUTPUT   - NONE
+00000348                           384  ; MODIFIES - NONE
+00000348                           385  ; -----------------------------------------------------------------------------
+Line 386 ERROR: Undefined symbol
+00000348  4279 004DBD16            386              CLR.W   (MOUSEPOSX)                    ; INIT VARS
+Line 387 ERROR: Undefined symbol
+0000034E  4279 004DBD16            387              CLR.W   (MOUSEPOSY)
+Line 388 ERROR: Undefined symbol
+00000354  4279 004DBD16            388              CLR.W   (ENATP)
+Line 389 ERROR: Undefined symbol
+0000035A  4279 004DBD16            389              CLR.W   (LASTENA)
+00000360                           390              
+Line 391 ERROR: Invalid syntax
+00000360                           391              MOVE.L  #REVISION, ($80+MOUSETRAP*4)    ; INSTALL
+00000360  4E75                     392              RTS
+00000362                           393              
+Line 394 ERROR: Symbol value differs between first and second pass
+00000362                           394  REVISION:
+00000362  48E7 FF00                395              MOVEM.L D0-D7,-(A7)
+00000366                           396  
+00000366                           397              ; READ CURRENT STATE OF MOUSE AND CHANGE MOUSE COORDINATES
+00000366  103C 003D                398              MOVE.B  #61,D0
+0000036A  123C 0000                399              MOVE.B  #00,D1
+0000036E                           400              
+0000036E  4E4F                     401              TRAP    #15
+Line 402 ERROR: Undefined symbol
+00000370  33C1 005455B8            402              MOVE.W  D1,(MOUSEPOSX)
+00000376                           403              
+00000376                           404  
+00000376                           405              
+00000376                           406              
+00000376                           407  
+00000376  4841                     408              SWAP    D1            ; Intercambia los 16 bits superiores e inferiores de D1
+00000378                           409  
+Line 410 ERROR: Undefined symbol
+00000378  33C1 005455B8            410              MOVE.W  D1,(MOUSEPOSY)
+0000037E  4841                     411              SWAP    D1
+00000380                           412              
+00000380                           413  
+00000380                           414              ; IF LEFT CLICK PRESSED AND IT'S INSIDE THE BUTTON ADD 1
+00000380  0800 0000                415              BTST    #0,D0
+00000384                           416              
+00000384  6700 009A                417              BEQ     NOT_PRESSED
+Line 418 ERROR: Undefined symbol
+00000388  0C79 0000 005455B8       418              CMP.W   #0,(ENATP)
+00000390  6600 0074                419              BNE CHECKTIMER
+00000394                           420  
+Line 421 ERROR: Symbol value differs between first and second pass
+00000394                           421  PRESSED:
+Line 422 ERROR: Undefined symbol
+00000394  33F9 004DBD16 005455B8   422               MOVE.W (VTIMER),(LASTENA)
+Line 423 ERROR: Undefined symbol
+0000039E  33F9 004DBD16 005455B8   423              MOVE.W (MOUSEPOSX),(PLRPOSX)
+Line 424 ERROR: Undefined symbol
+000003A8  33F9 004DBD16 005455B8   424              MOVE.W (MOUSEPOSY),(PLRPOSY)
+Line 425 ERROR: Undefined symbol
+000003B2  33FC 0001 005455B8       425              MOVE.W #1,(ENATP)
+000003BA                           426              
+000003BA  6000 0064                427              BRA NOT_PRESSED
+000003BE                           428              
+000003BE                           429  
+Line 430 ERROR: Symbol value differs between first and second pass
+000003BE                           430  CHECKTIMER:
+Line 431 ERROR: Undefined symbol
+000003BE  3639 004DBD16            431              MOVE.W (VTIMER),D3
+Line 432 ERROR: Undefined symbol
+000003C4  9679 004DBD16            432              SUB.W (LASTENA),D3
+000003CA                           433              
+000003CA  B67C 0006                434              CMP #6,D3
+000003CE  6D00 0050                435              BLT NOT_PRESSED
+Line 436 ERROR: Undefined symbol
+000003D2  4279 004DBD16            436              CLR.W (ENATP)
+000003D8                           437              
+000003D8                           438           
+Line 439 ERROR: Symbol value differs between first and second pass
+000003D8                           439  NOT_PRESSED:          
+000003D8  4CDF 00FF                440              MOVEM.L  (A7)+,D0-D7
+000003DC  4E73                     441              RTE
+000003DE                           442              
+000003DE                           443             
+000003DE                           444  ; -----------------------------------------------------------------------------
+Line 445 ERROR: Symbol value differs between first and second pass
+000003DE                           445  SCRUPD
+000003DE                           446  ; TRAP SERVICE ROUTINE IN CHARGE OF VISUALIZING CURRENT FRAME AND CLEARING
+000003DE                           447  ; BUFFER FOR THE NEXT ONE.
+000003DE                           448  ; INPUT    - NONE
+000003DE                           449  ; OUTPUT   - NONE
+000003DE                           450  ; MODIFIES - NONE
+000003DE                           451  ; -----------------------------------------------------------------------------
+000003DE  48A7 FE40                452              MOVEM.W D0-D6/A1,-(A7)
+Line 453 ERROR: Undefined symbol
+000003E2  43F9 004DBD16            453              LEA TXT2FPS,A1
+000003E8  4281                     454              CLR.L D1
+Line 455 ERROR: Undefined symbol
+000003EA  3239 004DBD16            455              MOVE.W (FPSAN),D1
+000003F0  103C 0011                456              MOVE.B #17,D0
+000003F4  4E4F                     457              TRAP #15
+000003F6  4280                     458              CLR.L D0
+000003F8  4281                     459              CLR.L D1
+000003FA  103C 005E                460              MOVE.B  #94,D0                  ; UPDATE DOUBLE BUFFER
+000003FE  4E4F                     461              TRAP    #15
+00000400  323C FF00                462              MOVE.W  #$FF00,D1               ; CLEAR HIDDEN BUFFER
+00000404  103C 000B                463              MOVE.B  #11,D0
+00000408  4E4F                     464              TRAP    #15
+0000040A  4C9F 027F                465              MOVEM.W (A7)+,D0-D6/A1
+0000040E  4E73                     466              RTE
+Line 467 ERROR: Symbol value differs between first and second pass
+00000410                           467  FILLOAD
+00000410                           468  ; LOADS AN FILE FROM DISK TO MEMORY
+00000410                           469  ; INPUT    : A0 - DESTINATION ADDR. WITH ENOUGH SPACE AVAILABLE.
+00000410                           470  ;            A1 - POINTER TO FILE NAME
+00000410                           471  ; OUTPUT   : NONE
+00000410                           472  ; MODIFIES : NONE
+00000410                           473  ; NOTE     : THE READ DATA LOOP READS 1 BYTE AT A TIME TO ENSURE ALL FILES CAN
+00000410                           474  ;            BE LOADED. HOWEVER, IF THE FILE SIZE IS KNOWN BEFOREHAND, NO LOOP
+00000410                           475  ;            WOULD BE NECESSARY AND A SINGLE CALL TO TRAP #15 TASK 53 WOULD READ
+00000410                           476  ;            THE WHOLE FILE AS LONG AS THE FILE SIZE IS PLACED INTO D2.L.
+00000410                           477  ; NOTE     : THE ZERO-TERMINATOR (JUST BEFORE CLOSE THE FILE) IS A REQUIREMENT
+00000410                           478  ;            FOR TEXT-FILES IF THE TEXT IS TO BE PRINTED. FOR OTHER USES, IT
+00000410                           479  ;            CAN BE REMOVED.
+00000410                           480  ; ------------------------------------------------------------------------------
+00000410  48E7 E040                481              MOVEM.L D0-D2/A1,-(A7)          ; SAVE REGISTERS
+00000414                           482              ; CLOSE ALL FILES
+00000414  103C 0032                483              MOVE.B  #50,D0
+00000418  4E4F                     484              TRAP    #15
+0000041A                           485              ; OPEN FILE (ASSUMES A1 POINTS TO FILENAME)
+0000041A  103C 0033                486              MOVE.B  #51,D0
+0000041E  4E4F                     487              TRAP    #15                     ; D1.L:=FILE HANDLER
+00000420                           488              ; READ DATA
+00000420  2248                     489              MOVE.L  A0,A1                   ; A1 MUST BE THE BUFFER ADDRESS
+00000422  103C 0035                490              MOVE.B  #53,D0                  ; READ DATA TASK
+00000426  243C 00001000            491              MOVE.L  #4096,D2                   ; BYTES TO READ (ONE BY ONE)
+0000042C  4E4F                     492              TRAP    #15
+0000042E                           493                                 ; PUT A ZERO-TERMINATOR.
+0000042E                           494              ; CLOSE THE FILE
+0000042E  103C 0038                495              MOVE.B  #56,D0
+00000432  4E4F                     496              TRAP    #15
+00000434  4CDF 0207                497              MOVEM.L (A7)+,D0-D2/A1          ; RESTORE REGISTERS
+00000438  4E75                     498              RTS
+0000043A                           499  
+0000043A                           500  
+0000043A                           501  
+0000043A                           502  
+0000043A                           503  
+0000043A                           504  
+0000043A                           505  
+0000043A                           506  
+0000043A                           507  
+Line 508 WARNING: END directive missing, starting address not set
 
-50 errors detected
+100 errors detected
 1 warning generated
 
 
 SYMBOL TABLE INFORMATION
 Symbol-name         Value
 -------------------------
-CHECKTIMER          1D2
-FILLOAD             20C
-KBDINIT             7E
-KBDREAD             96
-KBDREAD:CHECKTIMER2  13E
-KBDREAD:DIB         F4
-KBDREAD:LOOP        DE
-KBDREAD:RETURN      D4
-KBDREAD:SHIELDPLOT  E8
-KBDREAD:STORE       DA
-MOUSEINIT           152
-NOT_PRESSED         1EC
-PRESSED             1A8
-REVISION            176
+CHECKTIMER          406
+FILLOAD             458
+FPSUPD              B8
+FPSUPD:AA           EA
+FPSUPD:CA           10C
+FPSUPD:FF           126
+FPSUPD:ND           DC
+FPSUPD:SN           11C
+FPSUPD:TN           FA
+FPSUPD:TRAP         12E
+KBDINIT             24A
+KBDREAD             262
+KBDREAD:CHECKLIST   2D2
+KBDREAD:CHECKTIMER2  352
+KBDREAD:DIB         30E
+KBDREAD:DIB2        2EE
+KBDREAD:ENABLE      376
+KBDREAD:FIN1        36A
+KBDREAD:LOOP        2AA
+KBDREAD:RETURN      2A0
+KBDREAD:SHIELDPLOT  2B4
+KBDREAD:STORE       2A6
+MOUSEINIT           386
+NOT_PRESSED         420
+PRESSED             3DC
+REVISION            3AA
 SCRINIT             E
 SCRISR              0
-SCRUPD              1F2
+SCRPLOT             134
+SCRPLOT:CHECKPOINT  1AE
+SCRPLOT:CHECKPOINT2  1FA
+SCRPLOT:POSIBLEROJO  19E
+SCRPLOT:ROJO        234
+SCRPLOT:VERDE       18E
+SCRUPD              426
