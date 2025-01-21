@@ -49,12 +49,10 @@ XCENTER     DS.W 1
 YCENTER     DS.W 1
 MOVIMIENTO  DS.W 1
 PLTEN       DS.W    1
+PLTEN1      DS.W    1
 ;BALLS
 BALEN       DS.W    1
 
 
 
-*~Font name~Courier New~
-*~Font size~10~
-*~Tab type~0~
-*~Tab size~4~
+
