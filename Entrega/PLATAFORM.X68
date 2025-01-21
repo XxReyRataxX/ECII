@@ -26,9 +26,22 @@ PINIT1
 ; MODIFIES : XCENTER, YCENTER, MOVIMIENTO
 ; ------------------------------------------------------------------------------
     MOVE.W  #100, (A0)          ;INICIALIZAR COORDENADAS DE PLATAFORMA
-    MOVE.W  #250, 2(A0)
-    MOVE.W  #1, 4(A0)
+    MOVE.W  #200, 2(A0)
+    MOVE.W  #5, 4(A0)
     MOVE.W  #1, 6(A0)
+    RTS
+    
+; ------------------------------------------------------------------------------
+PINIT2
+; INITIALIZE PLATAFORMA.
+; INPUT    : NONE 
+; OUTPUT   : NONE
+; MODIFIES : XCENTER, YCENTER, MOVIMIENTO
+; ------------------------------------------------------------------------------
+    MOVE.W  #500, (A0)          ;INICIALIZAR COORDENADAS DE PLATAFORMA
+    MOVE.W  #0, 2(A0)
+    MOVE.W  #5, 4(A0)
+    MOVE.W  #3, 6(A0)
     RTS
 PUPDATE
 ; UPDATE PLATAFORMA COORDENADES, SI CHOCA CONTRA PARED, NEGAR A MOVIMIENTO PARA ACTUALIZAR LA COORDENADA
@@ -95,7 +108,75 @@ PUPDATE
     
     MOVEM.W (A7)+,D0-D5
 
+    RTS    
+    
+PUPDATE1
+; UPDATE PLATAFORMA COORDENADES, SI CHOCA CONTRA PARED, NEGAR A MOVIMIENTO PARA ACTUALIZAR LA COORDENADA
+; INPUT    : NONE
+; OUTPUT   : NONE
+; MODIFIES : XCENTER
+; ------------------------------------------------------------------------------
+    
+    MOVEM.W D0-D5,-(A7)
+
+    MOVE.W (A0),D0
+    MOVE.W  2(A0),D1
+    
+    ADD.W   6(A0),D1
+    
+    ; COMPARA SI CHOCA PARED :( CMP B,A
+    ; SI A<B PUES NADA A DIBUJAR EN AUX
+    CMP.W   #SCRHEIGH, D1
+    BLO .UPAUX
+    NEG.W   6(A0)
+    ADD.W   6(A0),D1
+    BRA .F
+.UPAUX
+    MOVE.W  D1, 2(A0) 
+.F          
+            ;MIRAMOS SI HAY COLISIONES EN LA PARTE SUPERIOR
+                        
+            ; CHECKS COLLISION
+; INPUT    - D0.W X0 COORDINATE
+;            D1.W Y0 COORDINATE
+;            D2.W X1 COORDINATE
+;            D3.W Y1 COORDINATE
+;            D4.W WIDTH 0
+;            D5.W WIDTH 1
+;            D6.W HEIGHT 0
+;            D7.W HEIGHT 1
+; OUTPUT   - D0.B=FF - COLLISION, =0 - NO COLLISION
+
+            SUB.W #CALTURA/2,D1
+            SUB.W #CANCHURA/2,D0
+            
+            MOVE.W (PLRPOSX),D2
+            MOVE.W (PLRPOSY),D3
+            ADD.W   #PLRHEIGH,D3
+            MOVE.W #CANCHURA,D4
+            MOVE.W #PLRWIDTH,D5
+           
+            MOVE.W #10,D6
+            MOVE.W #5,D7
+            
+            JSR     UTLCHCOL
+            
+            
+            CMP.B   #$FF,D0
+            BNE .FIN
+            MOVE.W  2(A0),(PLRPOSY)
+            SUB.W   #CALTURA/2,(PLRPOSY)
+            SUB.W   #PLRHEIGH,(PLRPOSY)
+            MOVE.W  #GRAVEDAD,(VGRAVEDAD)
+            BRA     .FIN
+            
+    
+.FIN   
+    
+    MOVEM.W (A7)+,D0-D5
+
     RTS
+
 
 PPLOT
 ; DIBUJAR UN RECTANGULO, altura 40, ancho 100
@@ -135,7 +216,3 @@ PPLOT
             RTS 
 
 
-*~Font name~Courier New~
-*~Font size~10~
-*~Tab type~0~
-*~Tab size~4~
