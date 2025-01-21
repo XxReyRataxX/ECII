@@ -2,8 +2,8 @@ PLRINIT
 ;Personaje 
 ;----------------------------------------------------------------------------            
             MOVE.W #GRAVEDAD,(VGRAVEDAD)
-            MOVE.W  #PLRWIDTH/2,(PLRPOSX)
-            MOVE.W  #(SCRHEIGH-PLRHEIGH)/2,(PLRPOSY)
+            MOVE.W  #(SCRWIDTH)/2,(PLRPOSX)
+            MOVE.W  #(SCRHEIGH-PLRHEIGH),(PLRPOSY)
             RTS
             
 PLRUPD
@@ -100,3 +100,8 @@ LOOPDIB:
 
 
 
+
+*~Font name~Courier New~
+*~Font size~10~
+*~Tab type~0~
+*~Tab size~4~

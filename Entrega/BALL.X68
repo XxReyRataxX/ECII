@@ -111,11 +111,11 @@ BALUPD
             SUB.W   #BALRAD,D0
             SUB.W   #BALRAD,D1
             MOVE.W D0,(BALPRV1)
-            MOVE.W D1,(BALPRV2) ;guardar por si despuÃ©s miramos la del player
+            MOVE.W D1,(BALPRV2) ;guardar por si después miramos la del player
             
-            ;MIRAMOS SI EL ESCUDO ESTÃ ACTIVO, para eso, dos comprobaciones
-            ;1 (estÃ¡ el espacio presionado)?
-            ;2(estamos en el tiempo disponible para la activaciÃ³n del mismo)?
+            ;MIRAMOS SI EL ESCUDO ESTÁ ACTIVO, para eso, dos comprobaciones
+            ;1 (está el espacio presionado)?
+            ;2(estamos en el tiempo disponible para la activación del mismo)?
             MOVE.B  #19,D0
             MOVE.L  #KBDSHIELD<<24,D1
             TRAP #15
@@ -124,7 +124,7 @@ BALUPD
             BEQ .PLRCOLISION ;No estamos presionando espacio, miramos si
             ;la bola toca al jugador
             
-            ;Â¡HEMOS PRESIONADO ESPACIO!
+            ;¡HEMOS PRESIONADO ESPACIO!
             MOVE.W (SHIELDTIMEEN),D6
             MOVE.W (VTIMER),D7
             CMP D7,D6
@@ -294,3 +294,8 @@ BALPLOT
 
 
 
+
+*~Font name~Courier New~
+*~Font size~10~
+*~Tab type~0~
+*~Tab size~4~
