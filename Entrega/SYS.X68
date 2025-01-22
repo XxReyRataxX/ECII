@@ -513,7 +513,7 @@ WIN
             MOVEM.L D0-D6,-(A7)
             MOVEM.L A0-A6,-(A7)
 
-            CMP #4,(VTIMER)
+            CMP #80,(VTIMER)
             BNE RETURN
             ;EL JUEGO HA TERMINADO
             MOVE.W #16,D1
