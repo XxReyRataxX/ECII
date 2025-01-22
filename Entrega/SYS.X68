@@ -509,6 +509,88 @@ FILLOAD
             RTS
 
 
+WIN
+            MOVEM.L D0-D6,-(A7)
+            MOVEM.L A0-A6,-(A7)
+
+            CMP #4,(VTIMER)
+            BNE RETURN
+            ;EL JUEGO HA TERMINADO
+            MOVE.W #16,D1
+            MOVE.W #92,D0
+            TRAP #15
+            
+            ;Clear Screen : Set D1.W to $FF00
+            MOVE.W #11,D0
+            MOVE.W #$FF00,D1
+            TRAP #15
+            
+            
+            MOVE.L #$00000000,D1
+            MOVE.W #81,D0        ; SET FILL COLOR
+            TRAP #15
+            
+            			
+	MOVE.L #$000000FF,D1
+            MOVE.W #80,D0        ; SET PEN COLOR
+            TRAP #15
+            
+              
+            LEA WIN1,A1
+	
+            MOVE.B #14,D0
+            TRAP #15
+            
+            LEA WIN2,A1
+	
+            MOVE.B #14,D0
+            TRAP #15
+
+            
+.DIBUJAR    ;DIBUJAR IMAGEN FINAL
+            MOVE.W #1024,D4
+            SUBQ.W #1,D4
+            LEA WINPIX,A0
+            LEA FILENAMEWIN,A1
+            JSR FILLOAD
+            
+            LEA X1,A3
+            LEA Y1,A4
+           
+LOOPDIB1:
+            CLR.L D1
+            CLR.L D2
+            MOVE.B #80,D0
+            MOVE.L (A0)+,D1
+            TRAP #15 ;PEN COLOR
+            MOVE.B #82,D0
+            CLR.L D1
+            CLR.L D2
+            MOVE.W (A3)+,D1
+            MOVE.W (A4)+,D2
+            ADD.L #DSPLZ1,D1
+            ADD.L #DSPLZ2,D2
+            
+            TRAP #15 ;Dibujar pixel
+            DBRA D4,LOOPDIB1
+           ; JSR BALPLOT
+            
+            MOVEM.L (A7)+,A0-A6
+            MOVEM.L (A7)+,D0-D6
+            SIMHALT
+
+            
+
+
+            
+RETURN
+            MOVEM.L (A7)+,A0-A6
+            MOVEM.L (A7)+,D0-D6
+            RTS
+           
+
+
+
 
 
 

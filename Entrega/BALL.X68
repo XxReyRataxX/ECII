@@ -233,7 +233,8 @@ BALUPD
             MOVE.W #14,D0
             TRAP #15
             
-
+                       
+           
             SIMHALT            
            
             
@@ -290,6 +291,8 @@ BALPLOT
             MOVEM.L (A7)+,D0-D4
 
             RTS
+
+
 
 
 

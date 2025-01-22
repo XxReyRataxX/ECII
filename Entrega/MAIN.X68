@@ -97,7 +97,14 @@ START:                  ; first instruction of program
             LEA PPLOT,A3
             MOVE.W #2,D0
             JSR      AGLADD
-.III         
+            
+            
+.III
+            JSR WIN
+            
+            
+
+.IV         
              MOVE.W (SEGUNDOS),D4
             MOVE.W  (VTIMER),D5
             CMP     D4,D5
@@ -156,6 +163,8 @@ START:                  ; first instruction of program
            
 
     END    START        ; last line of source
+
+
 
 
 

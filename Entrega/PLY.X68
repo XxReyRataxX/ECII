@@ -84,6 +84,7 @@ LOOPDIB:
             MOVE.L (A0)+,D1
             TRAP #15 ;PEN COLOR
             MOVE.B #82,D0
+            CLR.L D1
             MOVE.L (A3)+,D1
             MOVE.L (A4)+,D2
             ADD.L D5,D1
@@ -97,6 +98,7 @@ LOOPDIB:
             MOVEM.L (A7)+,D0-D6
             RTS
             
+
 
 
 
