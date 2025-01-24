@@ -1,3 +1,7 @@
+; =============================================================================
+; GAME VARS
+; =============================================================================
+
 ; --- TIMED INTERRUPT RELATED VARIABLES ----------------------------------------
 
 SCRINTCT    DS.B    1                       ; INTERRUPT COUNTER
@@ -43,7 +47,9 @@ TIMEENABLE  DS.W    1
 
 ;----------SHIELD DECLARATIONS VARS
 SHIELDENA   DS.W 1
-LASTSHIELDENA DS.W 1
+SHIELDTIMEEN DS.W 1
+SHIELDCOOLDOWN DS.W 1
+SHIELDINICIO DS.W 1
 ;---------------PLATFORM DECLARATION VARS
 XCENTER     DS.W 1
 YCENTER     DS.W 1
@@ -57,7 +63,4 @@ BALEN       DS.W    1
 
 
 
-*~Font name~Courier New~
-*~Font size~10~
-*~Tab type~0~
-*~Tab size~4~
+
