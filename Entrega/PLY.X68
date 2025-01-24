@@ -1,11 +1,16 @@
+; -----------------------------------------------------------------------------
 PLRINIT            
-;Personaje 
-;----------------------------------------------------------------------------            
+; INIT THE POSITION OF THE PLAYER
+; INPUT    - NONE (ACCESSES KBDVAL AND KBDEDGE)
+; OUTPUT   - NONE (MODIFIES PLAYER DATA)
+; MODIFIES - NONE
+;----------------------------------------------------------------------------           
             MOVE.W #GRAVEDAD,(VGRAVEDAD)
             MOVE.W  #(SCRWIDTH)/2,(PLRPOSX)
             MOVE.W  #(SCRHEIGH-PLRHEIGH),(PLRPOSY)
             RTS
             
+; -----------------------------------------------------------------------------            
 PLRUPD
 ; UPDATES THE PLAYER MOTION
 ; INPUT    - NONE (ACCESSES KBDVAL AND KBDEDGE)
@@ -15,10 +20,10 @@ PLRUPD
             MOVEM.W  D1/A3/D2/D3,-(A7)
             
             
-            MOVE.B  (KBDVAL),D1             ; PERFORM MOTION AND CHECK BOUNDS.
+            MOVE.B  (KBDVAL),D1             ; HACER EL MOVIMIENTO Y MIRAR LOS BORDES
             LEA     VGRAVEDAD,A3
             MOVE.W   (PLRPOSY),D2
-            ADD.W   (A3),D2
+            ADD.W   (A3),D2                         ;AÑADIMOS GRAVEDAD
             MOVE.W  D2,(PLRPOSY)
            
             ROR.B   #1,D1
@@ -31,7 +36,8 @@ PLRUPD
             BCC     .CHKRT
             
             SUB.W   #PLRSPEEDY,(PLRPOSY) 
-            ADDQ.W  #1,(VGRAVEDAD)
+            ADDQ.W  #1,(VGRAVEDAD)    ;INCREMENTAMOS LA GRAVEDAD PARA QUE HAYA
+                                      ;UN MOMENTO DONDE SEA MAYOR A LA VELY
             TST.W   (PLRPOSY)
             BGE     .CHKRT
             CLR.W   (PLRPOSY)
@@ -51,12 +57,25 @@ PLRUPD
             CMP.W   #SCRHEIGH-PLRHEIGH,(PLRPOSY)
             BLE     .FINAL
             MOVE.W  #SCRHEIGH-PLRHEIGH,(PLRPOSY)
-            MOVE.W #GRAVEDAD,(VGRAVEDAD)
+            MOVE.W #GRAVEDAD,(VGRAVEDAD)            ;CUANDO TOCAMOS SUELO DEJAMOS
+                                            ;LA GRAVEDAD COMO CONSTANTE ANTERIOR
             
             
 .FINAL      MOVEM.W  (A7)+,D1/A3/D2/D3
             RTS
-DIBUJAR     ;DIBUJAMOS DESDE 0,0 HASTA A SABER DONDE
+; -----------------------------------------------------------------------------            
+DIBUJAR     
+; DRAW THE CHARACTER IMAGE
+; INPUT    - X AND Y
+; OUTPUT   - NONE 
+; MODIFIES - NONE
+; -----------------------------------------------------------------------------
+            ;Dibujaremos un numero constante de pixeles, contados por el programa
+            ;que escribe los RGB en un documento en binario, usaremos FILLOAD, para
+            ;tener los RGB en memoria, además de utilizar unas variables llamadas X e Y
+            ;que indican las coordenadas de cada pixel. Cada pixel lo moveremos segun 
+            ;PLRPOSX y PLRPOSY
+
             MOVEM.L D0-D6,-(A7)
             MOVEM.L A0-A6,-(A7)
             
