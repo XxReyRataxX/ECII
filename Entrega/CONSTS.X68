@@ -2,6 +2,7 @@
 ; SYSTEM CONSTANTS
 ; =============================================================================
 
+;Datos de la imagen del jugador
 X:
 	DC.L 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14
 	DC.L 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 0, 1
@@ -163,24 +164,24 @@ SCRWIDTH    EQU     640                     ; SCREEN WIDTH (PIXELS)
 SCRHEIGH    EQU     480                     ; SCREEN HEIGHT (PIXELS)
 SCRIRQ      EQU     1                       ; SCREEN INTERRUPT NUMBER
 TIMER    DC.B 'TIMER: ',0   ; "TIMER: " seguido de CR y LF, terminado en NULL
-SHIELD      DC.B    $0D, $0A,'SHIELD: ',0
+SHIELD      DC.B    $0D, $0A,'SHIELD: ',0 ;
 TELEPORT    DC.B    $0D, $0A,'TELEPORT: ',0           
 SCRTRAP     EQU     1
 TXTFPS      DC.B    $0D, $0A,'GOAL: ' ,0
-            DS.W    1
+
 TXT2FPS     DC.B    'ACTUAL: ' ,0
+;Mensaje game over
 GAMEOVER1   DC.B    $0D, $0A,$0D, $0A,$0D, $0A,$0D, $0A,$0D, $0A,'                                    GAME OVER!',0
 GAMEOVER2   DC.B    $0D, $0A,'                     YOU FAILED TO OVERCOME THE CHALLENGE.',0
 GAMEOVER3   DC.B    $0D, $0A,'             DUE TO LOSING IN THIS GAME IN THE MIND OF JESUS CHRIST',0
 GAMEOVER4   DC.B    $0D, $0A,'                   HE HAS DIED AND WILL NOT BE ABLE TO RESURRECT,',0
 GAMEOVER5   DC.B    $0D, $0A,'                     FOLLOWING THE EVENTS OF THE BIBLE.',0
 
-
+;Mensaje de ganar
 WIN1 DC.B    $0D, $0A,$0D, $0A,$0D, $0A,$0D, $0A,$0D, $0A,'                                    YOU WON!',0
 WIN2 DC.B    $0D, $0A,'                     JESUS CHRIST RESURRECTED THANKS TO YOUR HELP.',0
       
 
-            DS.W    1
 SCRTRAP     EQU     1
 FPS         EQU     50
 ;-----------------MOUSE DECLARATIONS CONSTS----------
@@ -190,9 +191,6 @@ MOUSETRAP   EQU     2
 ;----------SHIELD DECLARATIONS CONSTS
 SHIELDPOSX  EQU 80
 SHIELDPOSY  EQU 0
-SHIELDTIMEEN DS.W 1
-SHIELDCOOLDOWN DS.W 1
-SHIELDINICIO DS.W 1
 SHIELDATA  EQU  45
 
 
@@ -214,7 +212,7 @@ FILENAMEWIN    DC.B   'datos_ganaste.bin',0
 CALTURA     EQU 15
 CANCHURA    EQU 100
 
-
+;Datos de la imagen de ganar
 X1:
 	DC.W 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14
 	DC.W 15,16,17,18,19,20,21,22,23,24,25,26,27,28,29
@@ -359,7 +357,7 @@ Y1:
 	DC.W 31,31,31,31,31,31,31,31,31,31,31,31,31,31,31
 	DC.W 31,31,31,31
 
-
+;Desplazamiento para la colocación de la imagen
 DSPLZ1      EQU     300
 DSPLZ2      EQU     110
 
@@ -369,14 +367,3 @@ DSPLZ2      EQU     110
 
 
 
-
-
-
-
-
-
-
-*~Font name~Courier New~
-*~Font size~10~
-*~Tab type~0~
-*~Tab size~4~
