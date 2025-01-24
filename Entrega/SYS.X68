@@ -287,7 +287,9 @@ KBDINIT
 ; -----------------------------------------------------------------------------
             CLR.B   (KBDVAL)                    ; INICIALIZAR VARIABLES
             CLR.B   (KBDEDGE)
-            
+             CLR (SHIELDENA)
+            CLR (LASTSHIELDENA) 
+           CLR (SHIELDINICIO)
             MOVE.L  #KBDREAD, ($80+KBDTRAP*4)    ; INSTALACIÓN DEL TRAP
             RTS
             
@@ -586,7 +588,6 @@ FILLOAD
             MOVEM.L (A7)+,D0-D2/A1          ; RESTORE REGISTERS
             RTS
 
-
 ; -----------------------------------------------------------------------------
 WIN:
 ; DETECT THE WINNING CONDITION AND DRAW A MESSAGE WITH A PICTURE
@@ -675,7 +676,6 @@ RETURN
            
 
 
-           
 
 
 
@@ -686,8 +686,3 @@ RETURN
 
 
 
-
-*~Font name~Courier New~
-*~Font size~10~
-*~Tab type~0~
-*~Tab size~4~
