@@ -586,18 +586,26 @@ FILLOAD
             MOVEM.L (A7)+,D0-D2/A1          ; RESTORE REGISTERS
             RTS
 
-WIN
+
+; -----------------------------------------------------------------------------
+WIN:
+; DETECT THE WINNING CONDITION AND DRAW A MESSAGE WITH A PICTURE
+; INPUT    : NONE
+; OUTPUT   : NONE
+; MODIFIES : NONE
+; ------------------------------------------------------------------------------
             MOVEM.L D0-D6,-(A7)
             MOVEM.L A0-A6,-(A7)
-
+            
             CMP #80,(VTIMER)
             BNE RETURN
             ;EL JUEGO HA TERMINADO
+            ;DESHABILITAMOS DOUBLE BUFFER Y BORRAMOS PANTALLA
             MOVE.W #16,D1
             MOVE.W #92,D0
             TRAP #15
             
-            ;Clear Screen : Set D1.W to $FF00
+            ;VACIAMOS PANTALLA
             MOVE.W #11,D0
             MOVE.W #$FF00,D1
             TRAP #15
@@ -612,7 +620,7 @@ WIN
             MOVE.W #80,D0        ; SET PEN COLOR
             TRAP #15
             
-              
+            ;ESCRIBIMOS LOS MENSAJES CORRESPONDIENTES  
             LEA WIN1,A1
 	
             MOVE.B #14,D0
@@ -650,7 +658,7 @@ LOOPDIB1:
             
             TRAP #15 ;Dibujar pixel
             DBRA D4,LOOPDIB1
-           ; JSR BALPLOT
+           
             
             MOVEM.L (A7)+,A0-A6
             MOVEM.L (A7)+,D0-D6
@@ -664,6 +672,9 @@ RETURN
             MOVEM.L (A7)+,A0-A6
             MOVEM.L (A7)+,D0-D6
             RTS
+           
+
+
            
 
 
