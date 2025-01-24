@@ -30,7 +30,7 @@ SCRINIT
 ; -----------------------------------------------------------------------------
             ORI.W   #$0700,SR               ; DESHABILITAR INTERRUPCIONES
             MOVE.L  #SCRUPD,($80+SCRTRAP*4) ; TRAP
-            MOVE.L  #SCRWIDTH<<16|SCRHEIGH,D1 ; PONEMOS LA RESOLUCIÓN
+            MOVE.L  #SCRWIDTH<<16|SCRHEIGH,D1 ; PONEMOS LA RESOLUCIÃ“N
             MOVE.B  #33,D0
             TRAP    #15
             MOVE.L  #1,D1                   ; ACTIVAMOS EL MODO VENTANA
@@ -38,7 +38,7 @@ SCRINIT
             MOVE.W  #$FF00,D1               ; VACIAMOS EL BUFFER VISIBLE
             MOVE.B  #11,D0
             TRAP    #15
-            MOVE.B  #17,D1                  ; ACTIVACIÓN DOBLE BUFFER
+            MOVE.B  #17,D1                  ; ACTIVACIÃ“N DOBLE BUFFER
             MOVE.B  #92,D0
             TRAP    #15
             MOVE.W  #$FF00,D1               ; VACIAMOS EL BUFFER ESCONDIDO
@@ -97,10 +97,10 @@ FPSUPD
             NEG.L D4                        ;NEGAMOS PARA CALCULAR EL MODULO
 .ND
 
-            MULS    #10, D4                 ;CONVERSIÓN A MS                 
+            MULS    #10, D4                 ;CONVERSIÃ“N A MS                 
             CLR.L D6
             CLR.L D5
-            MOVE.B  (SCRCYCCT),D6           ;DIVIDIMOS POR EL NÚMERO DE CICLOS
+            MOVE.B  (SCRCYCCT),D6           ;DIVIDIMOS POR EL NÃšMERO DE CICLOS
 .AA         SUB.L   D6,D4                   ;PARA OBTENER LA MEDIA
             CMP.L   #0,D4
             BLT     .TN
@@ -119,12 +119,12 @@ FPSUPD
 .SN         
                 
             
-            MOVE.W  D4,(FPSAN)              ;GUARDAMOS EL RESULTADO PARA USARLO DESPUÉS
+            MOVE.W  D4,(FPSAN)              ;GUARDAMOS EL RESULTADO PARA USARLO DESPUÃ‰S
        
      
             BRA .TRAP
 .FF         MOVE.W #100,(FPSAN)             ;SIGNIFICA QUE ES MENOR A 1*10^-2 s  
-.TRAP                                       ;POR LO TANTO, MÁS DE 100 FPS
+.TRAP                                       ;POR LO TANTO, MÃS DE 100 FPS
 
             MOVEM.W (A7)+,D0-D6
             RTS 
@@ -150,7 +150,7 @@ SCRPLOT
             MOVE.W (VTIMER),D4
             MOVE.W (VTIMER),D1
             MOVE.B #17,D0
-            TRAP #15 ;VISUALIZACIÓN DEL TIMER
+            TRAP #15 ;VISUALIZACIÃ“N DEL TIMER
             
 
             
@@ -163,13 +163,13 @@ SCRPLOT
             MOVE.B #14,D0
             TRAP #15
             ;Si en D3 hay un 0, indicamos que hay que dibujar el 
-            ;rectangulo del escudo, es 1 será el del teleport.
+            ;rectangulo del escudo, es 1 serÃ¡ el del teleport.
             MOVE.L #0,D3
             MOVE.W (SHIELDTIMEEN),D5
             CMP D5,D4
             ;Si VTIMER es mayor a SHIELDTIMEEN, se pueden dar dos casos,
             ; que VTIMER sea menor al COOLDOWN, lo que significa que debemos
-            ;dibujar rojo o, que VTIMER sea mayor al COOLDOWN lo que indicará
+            ;dibujar rojo o, que VTIMER sea mayor al COOLDOWN lo que indicarÃ¡
             ;que debemos dibujar verde. 
             BGT .POSIBLEROJO
             
@@ -202,7 +202,7 @@ SCRPLOT
             BRA .VERDE
             
 .CHECKPOINT
-            ;Dibujado del rectángulo de SHIELD
+            ;Dibujado del rectÃ¡ngulo de SHIELD
             MOVE.W #65,D1
             MOVE.W #15,D2
             MOVE.W #80,D3
@@ -216,7 +216,7 @@ SCRPLOT
             TRAP #15
             
             
-            ;VISUALIZACIÓN DEL TEXTO DEL TP
+            ;VISUALIZACIÃ“N DEL TEXTO DEL TP
             LEA TELEPORT,A1
 	
             MOVE.B #14,D0
@@ -253,7 +253,7 @@ SCRPLOT
             MOVE.W #81,D0        ; SET FILL COLOR
             TRAP #15
             
-            ;DEBAJO HACEMOS LA VISUALIZACIÓN DE LOS FPS
+            ;DEBAJO HACEMOS LA VISUALIZACIÃ“N DE LOS FPS
             LEA TXTFPS,A1
             CLR.L D1
             
@@ -288,9 +288,9 @@ KBDINIT
             CLR.B   (KBDVAL)                    ; INICIALIZAR VARIABLES
             CLR.B   (KBDEDGE)
              CLR (SHIELDENA)
-            CLR (LASTSHIELDENA) 
+            
            CLR (SHIELDINICIO)
-            MOVE.L  #KBDREAD, ($80+KBDTRAP*4)    ; INSTALACIÓN DEL TRAP
+            MOVE.L  #KBDREAD, ($80+KBDTRAP*4)    ; INSTALACIÃ“N DEL TRAP
             RTS
             
 ; =============================================================================
@@ -314,7 +314,7 @@ KBDREAD
             MOVE.B  D2,(KBDVAL)             ; ALMACENAMOS LOS VALORES
             MOVE.B  D0,(KBDEDGE)
             
-            ;MIRAMOS SI EL ESPACIO ESTÁ SIENDO PRESIONADO
+            ;MIRAMOS SI EL ESPACIO ESTÃ SIENDO PRESIONADO
             
             MOVE.B  #19,D0
             MOVE.L  #KBDSHIELD<<24,D1
@@ -341,12 +341,12 @@ KBDREAD
 
 .SHIELDPLOT
             ;A la hora de dibujar el escudo tenemos que tener en cuenta varias cosas:
-            ;1: El escudo se puede activar durante 4 segundos desde la primera activación
-            ;2: Después del periodo de activación hay 4 segundos en los que no se podrá
+            ;1: El escudo se puede activar durante 4 segundos desde la primera activaciÃ³n
+            ;2: DespuÃ©s del periodo de activaciÃ³n hay 4 segundos en los que no se podrÃ¡
             ;utilizar, de manera obligatoria.
             
-            ;Es necesario conocer el instante del inicio de la activación para guardar
-            ;datos que nos servirán posteriormente
+            ;Es necesario conocer el instante del inicio de la activaciÃ³n para guardar
+            ;datos que nos servirÃ¡n posteriormente
             MOVE.W (SHIELDINICIO),D1
             CMP #0,(SHIELDINICIO)
             BEQ .DIB2 ;para obtener datos iniciales
@@ -367,7 +367,7 @@ KBDREAD
             SUB.W (SHIELDCOOLDOWN),D3
 
             CMP #0,D3
-            ;Se acabó el cooldown
+            ;Se acabÃ³ el cooldown
             BGE .ENABLE            
             
             ;Seguimos en cooldown
@@ -377,11 +377,11 @@ KBDREAD
           
             MOVE.W (VTIMER),D7
             ADD.W #4,D7
-            MOVE.W D7,(SHIELDTIMEEN) ;Periodo en el que se acaba la activación
+            MOVE.W D7,(SHIELDTIMEEN) ;Periodo en el que se acaba la activaciÃ³n
             ADD.W #4,D7
             MOVE.W D7,(SHIELDCOOLDOWN) ;Periodo en el que se acaba el cooldown
             
-            MOVE.W #1,(SHIELDINICIO) ;Hemos empezado la activación
+            MOVE.W #1,(SHIELDINICIO) ;Hemos empezado la activaciÃ³n
             
             CLR.W D7
             
@@ -421,7 +421,7 @@ KBDREAD
             BRA .RETURN
 
 .CHECKTIMER2:
-            ;Miramos si estamos en el periodo de activación
+            ;Miramos si estamos en el periodo de activaciÃ³n
             MOVE.W (SHIELDTIMEEN),D4
             MOVE.W (VTIMER),D3
             
@@ -472,7 +472,7 @@ REVISION:
 ; -----------------------------------------------------------------------------
             MOVEM.L D0-D7,-(A7)
 
-	; LECTURA DEL ESTADO ACTUAL DEL RATÓN
+	; LECTURA DEL ESTADO ACTUAL DEL RATÃ“N
 	MOVE.B  #61,D0
 	MOVE.B  #00,D1
 	
@@ -500,7 +500,7 @@ REVISION:
 
 PRESSED:
 
-            ;Guardamos la ultima activación
+            ;Guardamos la ultima activaciÃ³n
              MOVE.W (VTIMER),(LASTENA)
              MOVE.W (VTIMER),D2
              ADD.W #6,D2
