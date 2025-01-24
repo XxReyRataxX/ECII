@@ -5,10 +5,10 @@
 ;MOVX:     4(A0)
 ;MOVY:     6(A0)
 ; ==============================================================================
-            
+;CADA INIT PARA UNA DIFERENTE POSICION DE LA PLATAFORMA            
 ; ------------------------------------------------------------------------------
 PINIT
-; INITIALIZE PLATAFORMA.
+; INITIALIZE PLATAFORMA 0.
 ; INPUT    : NONE 
 ; OUTPUT   : NONE
 ; MODIFIES : XCENTER, YCENTER, MOVIMIENTO
@@ -20,7 +20,7 @@ PINIT
     RTS
 ; ------------------------------------------------------------------------------
 PINIT1
-; INITIALIZE PLATAFORMA.
+; INITIALIZE PLATAFORMA 1.
 ; INPUT    : NONE 
 ; OUTPUT   : NONE
 ; MODIFIES : XCENTER, YCENTER, MOVIMIENTO
@@ -33,7 +33,7 @@ PINIT1
     
 ; ------------------------------------------------------------------------------
 PINIT2
-; INITIALIZE PLATAFORMA.
+; INITIALIZE PLATAFORMA 2.
 ; INPUT    : NONE 
 ; OUTPUT   : NONE
 ; MODIFIES : XCENTER, YCENTER, MOVIMIENTO
@@ -43,8 +43,11 @@ PINIT2
     MOVE.W  #5, 4(A0)
     MOVE.W  #3, 6(A0)
     RTS
+    
+; ------------------------------------------------------------------------------    
 PUPDATE
-; UPDATE PLATAFORMA COORDENADES, SI CHOCA CONTRA PARED, NEGAR A MOVIMIENTO PARA ACTUALIZAR LA COORDENADA
+; UPDATE PLATFORM COORDINATES, IF IT COLLIDES WITH A WALL, 
+; DENY MOVEMENT TO UPDATE THE COORDINATE. THAT UPDATE IS USED FOR HORIZONTAL PLATFORMS
 ; INPUT    : NONE
 ; OUTPUT   : NONE
 ; MODIFIES : XCENTER
@@ -57,8 +60,7 @@ PUPDATE
     
     ADD.W   4(A0),D0
     
-    ; COMPARA SI CHOCA PARED :( CMP B,A
-    ; SI A<B PUES NADA A DIBUJAR EN AUX
+    ; COMPARA SI CHOCA PARED
     CMP.W   #SCRWIDTH, D0
     BLO .UPAUX
     NEG.W   4(A0)
@@ -68,17 +70,7 @@ PUPDATE
     MOVE.W  D0, (A0) 
 .F          
             ;MIRAMOS SI HAY COLISIONES EN LA PARTE SUPERIOR
-                        
-            ; CHECKS COLLISION
-; INPUT    - D0.W X0 COORDINATE
-;            D1.W Y0 COORDINATE
-;            D2.W X1 COORDINATE
-;            D3.W Y1 COORDINATE
-;            D4.W WIDTH 0
-;            D5.W WIDTH 1
-;            D6.W HEIGHT 0
-;            D7.W HEIGHT 1
-; OUTPUT   - D0.B=FF - COLLISION, =0 - NO COLLISION
+
 
             SUB.W #CALTURA/2,D1
             SUB.W #CANCHURA/2,D0
@@ -88,7 +80,8 @@ PUPDATE
             ADD.W   #PLRHEIGH,D3
             MOVE.W #CANCHURA,D4
             MOVE.W #PLRWIDTH,D5
-           
+            ;USAMOS CONSTANTES PARA TENER UNICAMENTE LA PARTE
+            ;DE ARRIBA DE LA PLATAFORMA PARA DETECTAR LA COLISIÓN
             MOVE.W #10,D6
             MOVE.W #5,D7
             
@@ -97,6 +90,7 @@ PUPDATE
             
             CMP.B   #$FF,D0
             BNE .FIN
+            ;AJUSTAMOS ENCIMA DE LA PLATAFORMA
             MOVE.W  2(A0),(PLRPOSY)
             SUB.W   #CALTURA/2,(PLRPOSY)
             SUB.W   #PLRHEIGH,(PLRPOSY)
@@ -109,14 +103,17 @@ PUPDATE
     MOVEM.W (A7)+,D0-D5
 
     RTS    
-    
+
+; ------------------------------------------------------------------------------        
 PUPDATE1
-; UPDATE PLATAFORMA COORDENADES, SI CHOCA CONTRA PARED, NEGAR A MOVIMIENTO PARA ACTUALIZAR LA COORDENADA
+; UPDATE PLATFORM COORDINATES, IF IT COLLIDES WITH A WALL, 
+; DENY MOVEMENT TO UPDATE THE COORDINATE.THAT UPDATE IS USED FOR VERTICAL PLATFORMS
 ; INPUT    : NONE
 ; OUTPUT   : NONE
 ; MODIFIES : XCENTER
 ; ------------------------------------------------------------------------------
-    
+    ;LA UNICA DIFERENCIA ES QUE AQUÍ MODIFICAMOS LA VELOCIDAD DE Y
+    ; Y LA POSICIÓN EN Y DE LA PLATAFORMA
     MOVEM.W D0-D5,-(A7)
 
     MOVE.W (A0),D0
@@ -124,8 +121,7 @@ PUPDATE1
     
     ADD.W   6(A0),D1
     
-    ; COMPARA SI CHOCA PARED :( CMP B,A
-    ; SI A<B PUES NADA A DIBUJAR EN AUX
+    ; COMPARA SI CHOCA PARED
     CMP.W   #SCRHEIGH, D1
     BLO .UPAUX
     NEG.W   6(A0)
@@ -136,16 +132,7 @@ PUPDATE1
 .F          
             ;MIRAMOS SI HAY COLISIONES EN LA PARTE SUPERIOR
                         
-            ; CHECKS COLLISION
-; INPUT    - D0.W X0 COORDINATE
-;            D1.W Y0 COORDINATE
-;            D2.W X1 COORDINATE
-;            D3.W Y1 COORDINATE
-;            D4.W WIDTH 0
-;            D5.W WIDTH 1
-;            D6.W HEIGHT 0
-;            D7.W HEIGHT 1
-; OUTPUT   - D0.B=FF - COLLISION, =0 - NO COLLISION
+         
 
             SUB.W #CALTURA/2,D1
             SUB.W #CANCHURA/2,D0
@@ -155,7 +142,8 @@ PUPDATE1
             ADD.W   #PLRHEIGH,D3
             MOVE.W #CANCHURA,D4
             MOVE.W #PLRWIDTH,D5
-           
+             ;USAMOS CONSTANTES PARA TENER UNICAMENTE LA PARTE
+            ;DE ARRIBA DE LA PLATAFORMA PARA DETECTAR LA COLISIÓN
             MOVE.W #10,D6
             MOVE.W #5,D7
             
@@ -164,6 +152,7 @@ PUPDATE1
             
             CMP.B   #$FF,D0
             BNE .FIN
+            ;AJUSTAMOS ENCIMA DE LA PLATAFORMA
             MOVE.W  2(A0),(PLRPOSY)
             SUB.W   #CALTURA/2,(PLRPOSY)
             SUB.W   #PLRHEIGH,(PLRPOSY)
@@ -177,12 +166,9 @@ PUPDATE1
 
     RTS
 
-
+; ------------------------------------------------------------------------------    
 PPLOT
-; DIBUJAR UN RECTANGULO, altura 40, ancho 100
-; Draw rectangle defined by (Left X, Upper Y, Right X, Lower Y).  
-; where LX = D1.W, UY = D2.W, RX = D3.W, LY = D4.W 
-; The rectangle is drawn using pen color and filled using fill color.
+; DRAW A RECTANGLE WITH HEIGHT 40 AND WIDTH 100
 ; Input    - XCENTER Y YCENTER
 ; Output   - None
 ; Modifies - Nothing
@@ -214,5 +200,6 @@ PPLOT
             MOVEM.L (A7)+,D0-D7   
             
             RTS 
+
 
 
