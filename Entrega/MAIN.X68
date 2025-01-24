@@ -40,10 +40,7 @@ START:                  ; first instruction of program
            MOVE.W #2,D0
            JSR      AGLADD
            
-           CLR (SHIELDENA)
-           CLR (LASTSHIELDENA) ;e
-           CLR (SHIELDINICIO)
-           
+         
 
            MOVE.W #0,(PLTEN)
            MOVE.W #0,(PLTEN1)
@@ -184,7 +181,3 @@ START:                  ; first instruction of program
 
 
 
-*~Font name~Courier New~
-*~Font size~10~
-*~Tab type~0~
-*~Tab size~4~
