@@ -23,7 +23,7 @@ START:                  ; first instruction of program
            JSR UTLINIT
            JSR SCRINIT
            JSR KBDINIT
-           ;JSR PINIT
+           
            MOVE.W #2,(SEGUNDOS)
            JSR PLRINIT
            JSR MOUSEINIT
@@ -126,13 +126,13 @@ START:                  ; first instruction of program
            
             
 .WINT 
-	;JSR     PUPDATE
+	
             JSR     PLRUPD
             JSR     AGLUPD
             
             JSR     AGLPLOT
             JSR     DIBUJAR
-            ;JSR     PPLOT
+            
             
              TST.B   (SCRINTCT)              ; WAIT FOR INTERRUPT
             BEQ     .WINT
