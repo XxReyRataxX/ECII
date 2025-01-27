@@ -168,8 +168,20 @@ SHIELD      DC.B    $0D, $0A,'SHIELD: ',0 ;
 TELEPORT    DC.B    $0D, $0A,'TELEPORT: ',0           
 SCRTRAP     EQU     1
 TXTFPS      DC.B    '                                                     GOAL: ',0
-
 TXT2FPS     DC.B    ' ACTUAL: ' ,0
+
+;Mensaje inicial del juego
+INTRO_TXT   DC.B    $0D, $0A,$0D, $0A,$0D, $0A,$09,$09,$09,'THREE DAYS IN DARKNESS.',$0D, $0A
+            DC.B    $09,$09,$09,'JESUS CHRIST, SUSPENDED BETWEEN LIFE AND DEATH,',$0D, $0A
+
+            DC.B    $09,$09,$09,'AWAKENS IN A STRANGE WORLD FORGED BY HIS OWN MIND.',$0D, $0A
+            DC.B    $09,$09,$09,'HERE, THE TRIALS ARE TESTS, THE OBSTACLES ARE LESSONS,',$0D, $0A
+            DC.B    $09,$09,$09,'AND THE GOAL... IS RESURRECTION.',$0D, $0A
+            DC.B    $09,$09,$09,'THE JOURNEY WILL NOT BE EASY, BUT IF HE OVERCOMES THIS',$0D, $0A
+            DC.B    $09,$09,$09,'CHALLENGE, HE WILL RETURN TO FULFILL HIS PURPOSE.',$0D, $0A
+            DC.B    $09,$09,$09,'HELP HIM NAVIGATE THIS SPIRITUAL REALM.',$0D, $0A
+            DC.B    $09,$09,$09,'JUMP, FIGHT, AND PROVE THAT HOPE NEVER DIES.',0
+
 ;Mensaje game over
 GAMEOVER1   DC.B    $0D, $0A,$0D, $0A,$0D, $0A,$0D, $0A,$0D, $0A,'                                    GAME OVER!',0
 GAMEOVER2   DC.B    $0D, $0A,'                     YOU FAILED TO OVERCOME THE CHALLENGE.',0
@@ -184,6 +196,7 @@ WIN2 DC.B    $0D, $0A,'                     JESUS CHRIST RESURRECTED THANKS TO Y
 
 SCRTRAP     EQU     1
 FPS         EQU     50
+INITDETECTOR DS.W   1
 ;-----------------MOUSE DECLARATIONS CONSTS----------
 MOUSETRAP   EQU     2
 
@@ -199,12 +212,13 @@ SHIELDATA  EQU  45
 
 PIXEL      DS.B 4096
 WINPIX     DS.B 4096
-
+INITPIX    DS.B 262144
 
 
 ;------------------FILENAMES-----------
 FILENAMEPIX   DC.B    'datos_pixeles.bin',0
-FILENAMEWIN    DC.B   'datos_ganaste.bin',0
+FILENAMEWIN   DC.B   'datos_ganaste.bin',0
+FILENAMEINI   DC.B   'datos_inicio.bin',0
 
 
 
@@ -357,18 +371,6 @@ Y1:
 	DC.W 31,31,31,31,31,31,31,31,31,31,31,31,31,31,31
 	DC.W 31,31,31,31
 
-;Desplazamiento para la colocación de la imagen
+;Desplazamiento para la colocaciÃ³n de la imagen
 DSPLZ1      EQU     300
 DSPLZ2      EQU     110
-
-
-            DS.W    0
-
-
-
-
-
-*~Font name~Courier New~
-*~Font size~10~
-*~Tab type~0~
-*~Tab size~4~
