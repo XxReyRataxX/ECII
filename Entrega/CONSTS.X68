@@ -167,9 +167,9 @@ TIMER    DC.B 'TIMER: ',0   ; "TIMER: " seguido de CR y LF, terminado en NULL
 SHIELD      DC.B    $0D, $0A,'SHIELD: ',0 ;
 TELEPORT    DC.B    $0D, $0A,'TELEPORT: ',0           
 SCRTRAP     EQU     1
-TXTFPS      DC.B    $0D, $0A,'GOAL: ' ,0
+TXTFPS      DC.B    '                                                     GOAL: ',0
 
-TXT2FPS     DC.B    'ACTUAL: ' ,0
+TXT2FPS     DC.B    ' ACTUAL: ' ,0
 ;Mensaje game over
 GAMEOVER1   DC.B    $0D, $0A,$0D, $0A,$0D, $0A,$0D, $0A,$0D, $0A,'                                    GAME OVER!',0
 GAMEOVER2   DC.B    $0D, $0A,'                     YOU FAILED TO OVERCOME THE CHALLENGE.',0
@@ -367,3 +367,8 @@ DSPLZ2      EQU     110
 
 
 
+
+*~Font name~Courier New~
+*~Font size~10~
+*~Tab type~0~
+*~Tab size~4~
