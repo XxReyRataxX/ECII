@@ -12,8 +12,8 @@
 
 ## 🛠️ Tecnologías Utilizadas
 
-- **Lenguaje**: Ensamblador Z80
-- **Herramientas**: Emuladores y compiladores compatibles con Z80
+- **Lenguaje**: Ensamblador 68k
+- **Herramientas**: Emuladores y compiladores compatibles con 68k
 - **Recursos**: Gráficos en formato binario y texto
 
 ## 📁 Estructura del Proyecto
